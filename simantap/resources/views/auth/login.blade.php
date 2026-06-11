@@ -1,47 +1,96 @@
-<x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
-
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
-
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+<!DOCTYPE html>
+<html lang="id" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — SIMANTAP</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        {{-- Logo --}}
+        <div class="auth-logo">
+            <i class="bi bi-shield-check-fill"></i>
         </div>
+        <h4 class="text-center fw-bold mb-1">SIMANTAP</h4>
+        <p class="text-center text-muted mb-4" style="font-size:.8rem">
+            Sistem Informasi Manajemen Bantuan Makan Taruna<br>
+            <small class="opacity-75">Politeknik KP Sorong</small>
+        </p>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+        {{-- Flash status --}}
+        @if (session('status'))
+            <div class="alert alert-success alert-sm py-2 mb-3" role="alert">
+                <i class="bi bi-check-circle me-1"></i>{{ session('status') }}
+            </div>
+        @endif
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
+        <form method="POST" action="{{ route('login') }}">
+            @csrf
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                    <input id="email" type="email" name="email"
+                           class="form-control @error('email') is-invalid @enderror"
+                           value="{{ old('email') }}" required autofocus
+                           placeholder="email@poltekkpsorong.ac.id">
+                    @error('email')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
 
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="remember">
-                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
-            </label>
-        </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input id="password" type="password" name="password"
+                           class="form-control @error('password') is-invalid @enderror"
+                           required placeholder="••••••••">
+                    <button class="btn btn-outline-secondary" type="button"
+                            onclick="togglePwd()" title="Tampilkan password">
+                        <i class="bi bi-eye" id="eyeIcon"></i>
+                    </button>
+                    @error('password')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
 
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="remember" id="remember">
+                    <label class="form-check-label" for="remember" style="font-size:.82rem">Ingat saya</label>
+                </div>
+                @if (Route::has('password.request'))
+                    <a href="{{ route('password.request') }}" class="text-decoration-none" style="font-size:.82rem">
+                        Lupa password?
+                    </a>
+                @endif
+            </div>
 
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+            <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Masuk
+            </button>
+        </form>
+
+        <hr class="my-4 opacity-25">
+        <p class="text-center text-muted mb-0" style="font-size:.72rem">
+            SOP PR/PKU/KU-001/2025 &nbsp;·&nbsp; &copy; {{ date('Y') }} Poltek KP Sorong
+        </p>
+    </div>
+</div>
+
+<script>
+function togglePwd() {
+    const f = document.getElementById('password');
+    const i = document.getElementById('eyeIcon');
+    if (f.type === 'password') { f.type = 'text'; i.className = 'bi bi-eye-slash'; }
+    else { f.type = 'password'; i.className = 'bi bi-eye'; }
+}
+</script>
+</body>
+</html>

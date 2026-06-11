@@ -1,3 +1,142 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "bootstrap/dist/css/bootstrap.min.css";
+@import "bootstrap-icons/font/bootstrap-icons.min.css";
+
+/* ─── Root Variables ─────────────────────────────────────── */
+:root {
+    --sidebar-width: 260px;
+    --sidebar-bg: #0f172a;
+    --sidebar-hover: #1e293b;
+    --sidebar-active: #2563eb;
+    --sidebar-text: #94a3b8;
+    --sidebar-text-active: #f8fafc;
+    --topbar-height: 60px;
+    --brand-color: #2563eb;
+}
+
+/* ─── Body ───────────────────────────────────────────────── */
+body { font-family: system-ui, -apple-system, sans-serif; font-size: 0.875rem; min-height: 100vh; }
+
+/* ─── Auth Pages ─────────────────────────────────────────── */
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+}
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--bs-body-bg);
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.35);
+    padding: 2.5rem;
+}
+.auth-logo {
+    width: 56px; height: 56px;
+    background: var(--brand-color);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; color: #fff; margin: 0 auto 1rem;
+}
+
+/* ─── Sidebar ────────────────────────────────────────────── */
+.sidebar {
+    width: var(--sidebar-width);
+    min-height: 100vh;
+    background: var(--sidebar-bg);
+    position: fixed; top: 0; left: 0; z-index: 1040;
+    transition: transform .3s ease;
+    overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: #334155 transparent;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+.sidebar-brand {
+    height: var(--topbar-height);
+    display: flex; align-items: center;
+    padding: 0 1.25rem;
+    background: rgba(37,99,235,.12);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    text-decoration: none;
+}
+.sidebar-brand-icon {
+    width: 36px; height: 36px; background: var(--brand-color);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; color: #fff; flex-shrink: 0;
+}
+.brand-name { font-size: 1rem; font-weight: 700; color: #f8fafc; letter-spacing: .5px; display: block; }
+.brand-sub  { font-size: .65rem; color: var(--sidebar-text); display: block; }
+
+.sidebar-section-title {
+    font-size: .65rem; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: #475569;
+    padding: 1.25rem 1.25rem .4rem;
+}
+.sidebar-link {
+    display: flex; align-items: center;
+    padding: .55rem 1.25rem;
+    color: var(--sidebar-text); text-decoration: none;
+    transition: background .15s, color .15s;
+    font-size: .83rem; position: relative;
+}
+.sidebar-link:hover { background: var(--sidebar-hover); color: #e2e8f0; }
+.sidebar-link.active { background: rgba(37,99,235,.15); color: var(--sidebar-text-active); font-weight: 500; }
+.sidebar-link.active::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--brand-color); border-radius: 0 3px 3px 0;
+}
+.sidebar-link .nav-icon { width: 20px; font-size: 1rem; margin-right: .7rem; flex-shrink: 0; text-align: center; }
+.sidebar .collapse .sidebar-link { padding-left: 3.1rem; font-size: .8rem; }
+.sidebar-link .chevron { margin-left: auto; font-size: .7rem; transition: transform .2s; }
+.sidebar-link[aria-expanded="true"] .chevron { transform: rotate(90deg); }
+
+/* ─── Layout ─────────────────────────────────────────────── */
+.wrapper { display: flex; min-height: 100vh; }
+.main-content { margin-left: var(--sidebar-width); flex: 1; display: flex; flex-direction: column; transition: margin-left .3s ease; }
+
+.topbar {
+    height: var(--topbar-height); position: sticky; top: 0; z-index: 1030;
+    display: flex; align-items: center; padding: 0 1.5rem; gap: .75rem;
+    background: var(--bs-body-bg); border-bottom: 1px solid var(--bs-border-color);
+}
+.topbar-title { font-weight: 600; font-size: .95rem; flex: 1; }
+.page-content { flex: 1; padding: 1.5rem; }
+
+/* ─── Stat Cards ─────────────────────────────────────────── */
+.stat-card { border-radius: .75rem; padding: 1.25rem; }
+.stat-card .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+.stat-card .stat-value { font-size: 1.75rem; font-weight: 700; line-height: 1; }
+.stat-card .stat-label { font-size: .78rem; font-weight: 500; opacity: .75; }
+
+/* ─── Cards ──────────────────────────────────────────────── */
+.card { border-radius: .75rem; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.card-header { border-radius: .75rem .75rem 0 0 !important; font-weight: 600; font-size: .875rem; }
+.table th { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.form-label { font-weight: 500; font-size: .82rem; }
+
+/* ─── Workflow Timeline ──────────────────────────────────── */
+.workflow-timeline { position: relative; padding-left: 2rem; }
+.workflow-timeline::before { content: ''; position: absolute; left: .65rem; top: 0; bottom: 0; width: 2px; background: var(--bs-border-color); }
+.workflow-item { position: relative; padding-bottom: 1.25rem; }
+.workflow-item::before { content: ''; position: absolute; left: -1.55rem; top: .35rem; width: 10px; height: 10px; border-radius: 50%; background: var(--bs-border-color); border: 2px solid var(--bs-body-bg); }
+.workflow-item.completed::before { background: #198754; }
+.workflow-item.current::before   { background: #0d6efd; box-shadow: 0 0 0 3px rgba(13,110,253,.25); }
+.workflow-item.rejected::before  { background: #dc3545; }
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 991.98px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.show { transform: translateX(0); }
+    .main-content { margin-left: 0; }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1039; }
+    .sidebar-overlay.show { display: block; }
+}
+
+/* ─── Print ──────────────────────────────────────────────── */
+@media print {
+    .sidebar, .topbar, .no-print { display: none !important; }
+    .main-content { margin-left: 0 !important; }
+    .page-content { padding: 0 !important; }
+}
