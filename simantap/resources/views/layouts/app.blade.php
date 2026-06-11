@@ -147,7 +147,21 @@
                 <i class="bi bi-cash-stack nav-icon"></i> Pembayaran Luar Kampus
             </a>
             @endcan
+
+            @canany(['transfer.senat.mengetahui','transfer.penyedia.setujui'])
+            <a href="{{ route('transfer-monitor.index') }}" class="sidebar-link @activeRoute('transfer-monitor.*')">
+                <i class="bi bi-arrow-left-right nav-icon"></i> Monitor Transfer
+            </a>
             @endcanany
+            @endcanany
+
+            {{-- Laporan BAMA --}}
+            @can('laporan_bama.view')
+            <span class="sidebar-section-title">Laporan BAMA</span>
+            <a href="{{ route('laporan-bama.index') }}" class="sidebar-link @activeRoute('laporan-bama.*')">
+                <i class="bi bi-file-earmark-bar-graph nav-icon"></i> Laporan Bulanan BAMA
+            </a>
+            @endcan
 
             {{-- Laporan --}}
             @canany(['laporan.view','montev.view','auditlog.view'])

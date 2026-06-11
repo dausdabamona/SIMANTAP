@@ -121,6 +121,29 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('pembayaran-luar/{pembayaranLuar}/transfer',                     [\App\Http\Controllers\PembayaranLuarKampusController::class, 'konfirmasiTransfer'])->name('pembayaran-luar.transfer');
     Route::post('pembayaran-luar/{pembayaranLuar}/konfirmasi-taruna',            [\App\Http\Controllers\PembayaranLuarKampusController::class, 'konfirmasiTaruna'])->name('pembayaran-luar.konfirmasi-taruna');
 
+    // ── Laporan BAMA ─────────────────────────────────────────
+    Route::resource('laporan-bama', \App\Http\Controllers\LaporanBamaController::class);
+    Route::post('laporan-bama/{laporanBama}/generate-pdf',    [\App\Http\Controllers\LaporanBamaController::class, 'generatePdf'])->name('laporan-bama.generate-pdf');
+    Route::get('laporan-bama/{laporanBama}/download-docx',    [\App\Http\Controllers\LaporanBamaController::class, 'generateDocx'])->name('laporan-bama.download-docx');
+    Route::post('laporan-bama/{laporanBama}/setujui-wadir',   [\App\Http\Controllers\LaporanBamaController::class, 'setujuiWadir'])->name('laporan-bama.setujui-wadir');
+    Route::post('laporan-bama/{laporanBama}/setujui-kpa',     [\App\Http\Controllers\LaporanBamaController::class, 'setujuiKpa'])->name('laporan-bama.setujui-kpa');
+    Route::post('laporan-bama/{laporanBama}/kirim-pusdik',    [\App\Http\Controllers\LaporanBamaController::class, 'kirimPusdik'])->name('laporan-bama.kirim-pusdik');
+
+    // ── Transfer Monitor ─────────────────────────────────────
+    Route::get('transfer-monitor', [\App\Http\Controllers\TransferMonitorController::class, 'index'])->name('transfer-monitor.index');
+    Route::post('transfer-monitor/{pembayaran}/mengetahui', [\App\Http\Controllers\TransferMonitorController::class, 'mengetahuiKppn'])->name('transfer-monitor.mengetahui');
+    Route::post('transfer-monitor/{pembayaran}/setujui-penyedia', [\App\Http\Controllers\TransferMonitorController::class, 'setujuiTransferPenyedia'])->name('transfer-monitor.setujui-penyedia');
+
+    // ── Portal Penyedia ──────────────────────────────────────
+    Route::middleware('role:penyedia')->prefix('portal-penyedia')->name('penyedia.')->group(function () {
+        Route::get('/pesanan',                    [\App\Http\Controllers\PenyediaController::class, 'pesanan'])->name('pesanan');
+        Route::post('/pesanan/{id}/konfirmasi',   [\App\Http\Controllers\PenyediaController::class, 'konfirmasiPesanan'])->name('pesanan.konfirmasi');
+        Route::get('/invoice',                    [\App\Http\Controllers\PenyediaController::class, 'invoice'])->name('invoice');
+        Route::post('/invoice/upload',            [\App\Http\Controllers\PenyediaController::class, 'uploadInvoice'])->name('invoice.upload');
+        Route::get('/pembayaran',                 [\App\Http\Controllers\PenyediaController::class, 'pembayaran'])->name('pembayaran');
+        Route::post('/pembayaran/{id}/konfirmasi',[\App\Http\Controllers\PenyediaController::class, 'konfirmasiTransfer'])->name('pembayaran.konfirmasi');
+    });
+
     // ── Monev & Audit ────────────────────────────────────────
     Route::resource('montev',    \App\Http\Controllers\MonteVController::class);
     Route::get('/audit-log',     \App\Http\Controllers\AuditLogController::class)->name('audit-log.index');

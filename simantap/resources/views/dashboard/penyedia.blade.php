@@ -60,7 +60,13 @@
         </div>
     </div>
 
-    <div class="card mt-4">
+    <div class="row g-2 mb-3">
+        <div class="col-4"><a href="{{ route('penyedia.pesanan') }}" class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-cart3 me-1"></i>Pesanan</a></div>
+        <div class="col-4"><a href="{{ route('penyedia.invoice') }}" class="btn btn-outline-success btn-sm w-100"><i class="bi bi-file-earmark-check me-1"></i>Invoice</a></div>
+        <div class="col-4"><a href="{{ route('penyedia.pembayaran') }}" class="btn btn-outline-info btn-sm w-100"><i class="bi bi-cash-stack me-1"></i>Pembayaran</a></div>
+    </div>
+
+    <div class="card mt-2">
         <div class="card-header fw-semibold">Riwayat Pesanan Terbaru</div>
         <div class="card-body p-0">
             <table class="table table-sm table-striped mb-0">
