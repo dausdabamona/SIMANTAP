@@ -15,13 +15,13 @@ class TransferMonitorController extends Controller
 
         // Panel 1: Transfer KPPN → Rekening Taruna
         $transferKppn = PengajuanPembayaran::whereIn('status', [
-            'sp2d_terbit', 'transfer_selesai', 'selesai',
+            'sp2d', 'transfer_kppn', 'debit_bank', 'transfer_penyedia', 'selesai',
         ])
         ->orderByDesc('tanggal_sp2d')
         ->paginate(15, ['*'], 'kppn');
 
         // Panel 2: Transfer Senat → Penyedia (SP2D Terbit atau lebih, ada bukti transfer)
-        $transferPenyedia = PengajuanPembayaran::where('status', 'transfer_selesai')
+        $transferPenyedia = PengajuanPembayaran::where('status', 'transfer_penyedia')
             ->orderByDesc('updated_at')
             ->paginate(15, ['*'], 'penyedia');
 
@@ -39,7 +39,7 @@ class TransferMonitorController extends Controller
     public function setujuiTransferPenyedia(PengajuanPembayaran $pembayaran): RedirectResponse
     {
         abort_unless(auth()->user()->hasRole('wadir_iii'), 403);
-        abort_unless($pembayaran->status === 'transfer_selesai', 403);
+        abort_unless($pembayaran->status === 'transfer_penyedia', 403);
 
         // Wadir III menyetujui → tandai status selesai (final)
         $pembayaran->update(['status' => 'selesai']);

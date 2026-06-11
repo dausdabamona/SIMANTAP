@@ -22,7 +22,7 @@ class PenyediaController extends Controller
     {
         $penyedia = $this->penyediaLogin();
 
-        $pesanan = PemesananHarian::whereIn('status', ['dikirim_penyedia', 'selesai', 'diverifikasi'])
+        $pesanan = PemesananHarian::whereIn('status', ['dikirim_penyedia', 'disajikan', 'selesai'])
             ->latest('tanggal')
             ->paginate(20);
 
@@ -34,9 +34,9 @@ class PenyediaController extends Controller
         $this->penyediaLogin();
 
         $pesanan = PemesananHarian::findOrFail($id);
-        abort_unless(in_array($pesanan->status, ['dikirim_penyedia']), 403);
+        abort_unless($pesanan->status === 'dikirim_penyedia', 403);
 
-        $pesanan->update(['status' => 'diverifikasi']);
+        $pesanan->update(['status' => 'disajikan']);
         return back()->with('success', 'Pesanan dikonfirmasi penyedia.');
     }
 
@@ -45,7 +45,7 @@ class PenyediaController extends Controller
         $penyedia = $this->penyediaLogin();
 
         // Invoice = pengajuan pembayaran terkait (SP2D terbit+)
-        $invoiceList = PengajuanPembayaran::whereIn('status', ['sp2d_terbit', 'transfer_selesai', 'selesai'])
+        $invoiceList = PengajuanPembayaran::whereIn('status', ['sp2d', 'transfer_kppn', 'debit_bank', 'transfer_penyedia', 'selesai'])
             ->latest()
             ->paginate(20);
 
@@ -82,7 +82,7 @@ class PenyediaController extends Controller
         $this->penyediaLogin();
 
         $pembayaran = PengajuanPembayaran::findOrFail($id);
-        abort_unless($pembayaran->status === 'transfer_selesai', 403);
+        abort_unless($pembayaran->status === 'transfer_penyedia', 403);
 
         $pembayaran->update(['status' => 'selesai']);
         return back()->with('success', 'Transfer dikonfirmasi oleh penyedia.');
