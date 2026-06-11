@@ -70,6 +70,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/monitoring',fn () => view('laporan.monitoring'))->name('monitoring');
     });
 
+    // ── Kegiatan Luar Kampus ─────────────────────────────────
+    Route::resource('kegiatan-luar', \App\Http\Controllers\KegiatanLuarKampusController::class);
+    Route::post('kegiatan-luar/{kegiatanLuar}/usulkan',        [\App\Http\Controllers\KegiatanLuarKampusController::class, 'usulkan'])->name('kegiatan-luar.usulkan');
+    Route::post('kegiatan-luar/{kegiatanLuar}/setujui-direktur', [\App\Http\Controllers\KegiatanLuarKampusController::class, 'setujuiDirektur'])->name('kegiatan-luar.setujui-direktur');
+    Route::post('kegiatan-luar/{kegiatanLuar}/ajukan-pusdik',  [\App\Http\Controllers\KegiatanLuarKampusController::class, 'ajukanPusdik'])->name('kegiatan-luar.ajukan-pusdik');
+    Route::post('kegiatan-luar/{kegiatanLuar}/pusdik',         [\App\Http\Controllers\KegiatanLuarKampusController::class, 'inputPersetujuanPusdik'])->name('kegiatan-luar.pusdik');
+    Route::post('kegiatan-luar/{kegiatanLuar}/batalkan',       [\App\Http\Controllers\KegiatanLuarKampusController::class, 'batalkan'])->name('kegiatan-luar.batalkan');
+
+    // Peserta kegiatan luar kampus
+    Route::post('kegiatan-luar/{kegiatanLuar}/peserta',                          [\App\Http\Controllers\PesertaKegiatanController::class, 'store'])->name('peserta-kegiatan.store');
+    Route::patch('kegiatan-luar/{kegiatanLuar}/peserta/{peserta}/hadir',         [\App\Http\Controllers\PesertaKegiatanController::class, 'updateHadir'])->name('peserta-kegiatan.hadir');
+    Route::delete('kegiatan-luar/{kegiatanLuar}/peserta/{peserta}',              [\App\Http\Controllers\PesertaKegiatanController::class, 'destroy'])->name('peserta-kegiatan.destroy');
+
+    // Pembayaran luar kampus
+    Route::resource('pembayaran-luar', \App\Http\Controllers\PembayaranLuarKampusController::class)->only(['index','show']);
+    Route::post('kegiatan-luar/{kegiatanLuar}/pembayaran',                       [\App\Http\Controllers\PembayaranLuarKampusController::class, 'buat'])->name('pembayaran-luar.buat');
+    Route::post('pembayaran-luar/{pembayaranLuar}/verifikasi-ppk',               [\App\Http\Controllers\PembayaranLuarKampusController::class, 'verifikasiPpk'])->name('pembayaran-luar.verifikasi-ppk');
+    Route::post('pembayaran-luar/{pembayaranLuar}/ajukan-kppn',                  [\App\Http\Controllers\PembayaranLuarKampusController::class, 'ajukanKppn'])->name('pembayaran-luar.ajukan-kppn');
+    Route::post('pembayaran-luar/{pembayaranLuar}/sp2d',                         [\App\Http\Controllers\PembayaranLuarKampusController::class, 'inputSp2d'])->name('pembayaran-luar.sp2d');
+    Route::post('pembayaran-luar/{pembayaranLuar}/transfer',                     [\App\Http\Controllers\PembayaranLuarKampusController::class, 'konfirmasiTransfer'])->name('pembayaran-luar.transfer');
+    Route::post('pembayaran-luar/{pembayaranLuar}/konfirmasi-taruna',            [\App\Http\Controllers\PembayaranLuarKampusController::class, 'konfirmasiTaruna'])->name('pembayaran-luar.konfirmasi-taruna');
+
     // ── Monev & Audit ────────────────────────────────────────
     Route::resource('montev',    \App\Http\Controllers\MonteVController::class);
     Route::get('/audit-log',     \App\Http\Controllers\AuditLogController::class)->name('audit-log.index');

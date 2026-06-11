@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\KegiatanLuarKampus;
 use App\Models\PenerimaanMakan;
 use App\Models\Taruna;
 use Illuminate\Http\Request;
@@ -36,12 +37,32 @@ class PenerimaanMakanController extends Controller
 
     public function create(): View
     {
-        // Eligible taruna for today
-        $tarunaEligible = Taruna::eligibleBantuan()->orderBy('nama')->get();
+        $tanggal = request('tanggal', today()->format('Y-m-d'));
+
+        // Taruna sedang PKL aktif pada tanggal ini → tidak eligible makan dalam kampus
+        $tarunaLuarKampus = $this->tarunaAktifLuarKampus($tanggal);
+
+        $tarunaEligible = Taruna::eligibleBantuan()
+            ->when($tarunaLuarKampus->isNotEmpty(), fn ($q) => $q->whereNotIn('id', $tarunaLuarKampus))
+            ->orderBy('nama')
+            ->get();
+
         return view('penerimaan.form', [
             'penerimaan'   => null,
             'tarunaList'   => $tarunaEligible,
         ]);
+    }
+
+    private function tarunaAktifLuarKampus(string $tanggal): \Illuminate\Support\Collection
+    {
+        return \App\Models\PesertaKegiatanLuarKampus::whereHas('kegiatan', function ($q) use ($tanggal) {
+            $q->whereIn('status', [
+                KegiatanLuarKampus::STATUS_DISETUJUI_PUSDIK,
+                KegiatanLuarKampus::STATUS_PROSES_PEMBAYARAN,
+            ])
+            ->whereDate('tanggal_mulai', '<=', $tanggal)
+            ->whereDate('tanggal_selesai', '>=', $tanggal);
+        })->pluck('taruna_id');
     }
 
     public function store(Request $request): RedirectResponse
@@ -100,7 +121,7 @@ class PenerimaanMakanController extends Controller
             'taruna_id'                  => 'required|exists:taruna,id',
             'jenis_makan'                => 'required|in:sarapan,makan_siang,makan_malam',
             'jumlah_porsi_diterima'      => 'required|integer|min:0|max:10',
-            'status_eligibilitas'        => 'required|in:eligible,tidak_eligible',
+            'status_eligibilitas'        => 'required|in:dapat,tidak_dapat',
             'alasan_pengecualian'        => 'nullable|string|max:500',
             'file_lampiran_pengecualian' => 'nullable|mimes:pdf,jpg,jpeg,png|max:5120',
             'lat'                        => 'nullable|numeric|between:-90,90',
@@ -110,9 +131,9 @@ class PenerimaanMakanController extends Controller
 
     private function eligibilitasBadge(PenerimaanMakan $p): string
     {
-        return $p->status_eligibilitas === 'eligible'
-            ? '<span class="badge bg-success">Eligible</span>'
-            : '<span class="badge bg-danger">Tidak Eligible</span>';
+        return $p->status_eligibilitas === 'dapat'
+            ? '<span class="badge bg-success">Dapat</span>'
+            : '<span class="badge bg-danger">Tidak Dapat</span>';
     }
 
     private function actionButtons(PenerimaanMakan $p): string
