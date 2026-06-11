@@ -52,6 +52,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('pembayaran', \App\Http\Controllers\PengajuanPembayaranController::class);
     Route::post('pembayaran/{pembayaran}/transisi', [\App\Http\Controllers\PengajuanPembayaranController::class, 'transisi'])->name('pembayaran.transisi');
 
+    // ── PDF Generation ──────────────────────────────────────
+    Route::prefix('pdf')->name('pdf.')->group(function () {
+        Route::get('rekap-bulanan/{rekap}',     [\App\Http\Controllers\PdfController::class, 'rekapBulanan'])->name('rekap-bulanan');
+        Route::get('rekap-periode',             [\App\Http\Controllers\PdfController::class, 'rekapPeriode'])->name('rekap-periode');
+        Route::get('pemesanan/{pemesanan}',     [\App\Http\Controllers\PdfController::class, 'pemesananHarian'])->name('pemesanan');
+        Route::get('pengajuan/{pembayaran}',    [\App\Http\Controllers\PdfController::class, 'pengajuanPembayaran'])->name('pengajuan-pembayaran');
+        Route::get('pemblokiran/{pemblokiran}', [\App\Http\Controllers\PdfController::class, 'pemblokiran'])->name('pemblokiran');
+    });
+
     // ── Laporan ──────────────────────────────────────────────
     Route::prefix('laporan')->name('laporan.')->group(function () {
         Route::get('/taruna',    fn () => view('laporan.taruna'))->name('taruna');

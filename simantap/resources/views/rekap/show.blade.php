@@ -12,6 +12,9 @@
                 <li class="breadcrumb-item active">{{ $rekap->periode_label }}</li>
             </ol></nav>
         </div>
+        <a href="{{ route('pdf.rekap-bulanan', $rekap) }}" class="btn btn-outline-danger btn-sm" target="_blank">
+            <i class="bi bi-file-pdf me-1"></i>PDF
+        </a>
         <a href="{{ route('rekap.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Kembali</a>
     </div>
 
