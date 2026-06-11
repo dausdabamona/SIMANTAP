@@ -35,7 +35,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('jadwal-menu',     \App\Http\Controllers\JadwalMenuController::class);
 
     // ── Operasional Harian ───────────────────────────────────
-    Route::resource('pemesanan',   \App\Http\Controllers\PemesananHarianController::class);
+    Route::resource('pemesanan', \App\Http\Controllers\PemesananHarianController::class);
+    Route::post('pemesanan/{pemesanan}/ttd-senat',    [\App\Http\Controllers\PemesananHarianController::class, 'tandatanganiSenat'])->name('pemesanan.ttd-senat');
+    Route::post('pemesanan/{pemesanan}/verifikasi',   [\App\Http\Controllers\PemesananHarianController::class, 'verifikasiPembina'])->name('pemesanan.verifikasi');
+    Route::post('pemesanan/{pemesanan}/kirim',        [\App\Http\Controllers\PemesananHarianController::class, 'kirimPenyedia'])->name('pemesanan.kirim');
     Route::resource('penerimaan',  \App\Http\Controllers\PenerimaanMakanController::class);
     Route::resource('monitoring',  \App\Http\Controllers\MonitoringController::class);
 
