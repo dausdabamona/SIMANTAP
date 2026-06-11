@@ -16,6 +16,11 @@ class DateHelper
         return self::$bulan[$num] ?? '-';
     }
 
+    public static function daftarBulan(): array
+    {
+        return self::$bulan;
+    }
+
     public static function periodeLabel(int $bulan, int $tahun): string
     {
         return (self::$bulan[$bulan] ?? '-') . ' ' . $tahun;
