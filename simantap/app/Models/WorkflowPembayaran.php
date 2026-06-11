@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-// Append-only — tidak boleh diupdate/dihapus
 class WorkflowPembayaran extends Model
 {
     use HasFactory;
@@ -16,13 +15,20 @@ class WorkflowPembayaran extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'pengajuan_id', 'user_id', 'status_dari', 'status_ke',
-        'aksi', 'catatan', 'ip_address', 'user_agent', 'created_at',
+        'pengajuan_id',
+        'user_id',
+        'status_dari',
+        'status_ke',
+        'aksi',
+        'catatan',
+        'created_at',
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
     ];
+
+    // ---------- Relationships ----------
 
     public function pengajuan(): BelongsTo
     {
@@ -31,11 +37,18 @@ class WorkflowPembayaran extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
+
+    // ---------- Scopes ----------
 
     public function scopeByPengajuan($query, int $pengajuanId)
     {
-        return $query->where('pengajuan_id', $pengajuanId)->orderBy('created_at');
+        return $query->where('pengajuan_id', $pengajuanId);
+    }
+
+    public function scopeUrutan($query)
+    {
+        return $query->orderBy('created_at');
     }
 }

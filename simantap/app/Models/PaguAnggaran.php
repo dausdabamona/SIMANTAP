@@ -2,46 +2,37 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PaguAnggaran extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'pagu_anggaran';
 
     protected $fillable = [
         'tahun',
-        'total_pagu',
-        'terpakai',
-        'sisa',
-        'kode_akun',
-        'kode_kegiatan',
+        'akun_belanja',
+        'nilai_pagu',
         'keterangan',
     ];
 
     protected $casts = [
-        'tahun' => 'integer',
-        'total_pagu' => 'decimal:2',
-        'terpakai' => 'decimal:2',
-        'sisa' => 'decimal:2',
+        'tahun'      => 'integer',
+        'nilai_pagu' => 'decimal:2',
     ];
+
+    // ---------- Scopes ----------
 
     public function scopeByTahun($query, int $tahun)
     {
         return $query->where('tahun', $tahun);
     }
 
-    public function getSisaPersenAttribute(): float
+    public function scopeByAkun($query, string $akun)
     {
-        if ($this->total_pagu == 0) return 0;
-        return round(($this->sisa / $this->total_pagu) * 100, 2);
-    }
-
-    public function getTerpakaiPersenAttribute(): float
-    {
-        if ($this->total_pagu == 0) return 0;
-        return round(($this->terpakai / $this->total_pagu) * 100, 2);
+        return $query->where('akun_belanja', $akun);
     }
 }

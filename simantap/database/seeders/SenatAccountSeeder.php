@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\SenatAccount;
 use Illuminate\Database\Seeder;
+use App\Models\SenatAccount;
 
 class SenatAccountSeeder extends Seeder
 {
@@ -12,11 +12,11 @@ class SenatAccountSeeder extends Seeder
         SenatAccount::firstOrCreate(
             ['nomor_rekening' => '1234567890'],
             [
-                'nama'         => 'Rekening Penampungan Senat Taruna Poltek KP Sorong',
+                'nama_akun'    => 'Rekening Senat Taruna Poltek KP Sorong',
                 'bank'         => 'Bank BRI',
                 'nama_pemilik' => 'Senat Taruna Politeknik KP Sorong',
-                'is_active'    => true,
-                'keterangan'   => 'Rekening penampungan untuk mekanisme debit otomatis bank (SOP PR/PKU/KU-001/2025 langkah 11 & 14)',
+                'is_aktif'     => true,
+                'keterangan'   => 'Rekening penampungan dana bantuan makan taruna sebelum ditransfer ke penyedia makan.',
             ]
         );
     }

@@ -2,74 +2,65 @@
 
 namespace App\Models;
 
-use App\Enums\StatusPemblokiran;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PemblokiranUangMakan extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'pemblokiran_uang_makan';
 
     protected $fillable = [
-        'periode_bulan', 'periode_tahun', 'taruna_id', 'senat_account_id',
-        'nilai_bantuan', 'status',
-        'nomor_surat_pemblokiran', 'tanggal_surat', 'file_surat_pemblokiran',
-        'bukti_debit_bank', 'tanggal_debit', 'nilai_didebit', 'catatan',
-        'diusulkan_oleh', 'diusulkan_at', 'diproses_oleh', 'diproses_at',
-        'created_by',
+        'periode_bulan',
+        'periode_tahun',
+        'taruna_id',
+        'status',
+        'nomor_surat',
+        'bukti_debit',
+        'target_rekening_id',
+        'jumlah',
+        'keterangan',
     ];
 
     protected $casts = [
-        'status'         => StatusPemblokiran::class,
-        'nilai_bantuan'  => 'decimal:2',
-        'nilai_didebit'  => 'decimal:2',
-        'tanggal_surat'  => 'date',
-        'tanggal_debit'  => 'datetime',
-        'diusulkan_at'   => 'datetime',
-        'diproses_at'    => 'datetime',
+        'periode_bulan' => 'integer',
+        'periode_tahun' => 'integer',
+        'jumlah'        => 'decimal:2',
     ];
+
+    const STATUS_DIUSULKAN = 'diusulkan';
+    const STATUS_DIBLOKIR  = 'diblokir';
+    const STATUS_DIDEBIT   = 'didebit';
+
+    // ---------- Relationships ----------
 
     public function taruna(): BelongsTo
     {
-        return $this->belongsTo(Taruna::class);
+        return $this->belongsTo(Taruna::class, 'taruna_id');
     }
 
-    public function senatAccount(): BelongsTo
+    public function targetRekening(): BelongsTo
     {
-        return $this->belongsTo(SenatAccount::class, 'senat_account_id');
+        return $this->belongsTo(SenatAccount::class, 'target_rekening_id');
     }
 
-    public function diusulkanOleh(): BelongsTo
+    // ---------- Scopes ----------
+
+    public function scopeDisusulkan($query)
     {
-        return $this->belongsTo(User::class, 'diusulkan_oleh');
+        return $query->where('status', self::STATUS_DIUSULKAN);
     }
 
-    public function diprosesOleh(): BelongsTo
+    public function scopeDiblokir($query)
     {
-        return $this->belongsTo(User::class, 'diproses_oleh');
+        return $query->where('status', self::STATUS_DIBLOKIR);
     }
 
-    public function createdBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function scopePeriode($query, int $bulan, int $tahun)
+    public function scopeByPeriode($query, int $bulan, int $tahun)
     {
         return $query->where('periode_bulan', $bulan)->where('periode_tahun', $tahun);
-    }
-
-    public function scopeByStatus($query, string $status)
-    {
-        return $query->where('status', $status);
-    }
-
-    public function getPeriodeLabelAttribute(): string
-    {
-        $dt = \Carbon\Carbon::createFromDate($this->periode_tahun, $this->periode_bulan, 1);
-        return $dt->translatedFormat('F Y');
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RekapBulananApproval extends Model
@@ -14,34 +14,32 @@ class RekapBulananApproval extends Model
 
     protected $fillable = [
         'rekap_bulanan_id',
-        'approved_by',
-        'role_approver',
-        'status',
+        'role',
+        'user_id',
+        'signed_at',
         'catatan',
-        'approved_at',
     ];
 
     protected $casts = [
-        'approved_at' => 'datetime',
+        'signed_at' => 'datetime',
     ];
+
+    // ---------- Relationships ----------
 
     public function rekapBulanan(): BelongsTo
     {
-        return $this->belongsTo(RekapBulanan::class);
+        return $this->belongsTo(RekapBulanan::class, 'rekap_bulanan_id');
     }
 
-    public function approvedBy(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function scopeDisetujui($query)
-    {
-        return $query->where('status', 'disetujui');
-    }
+    // ---------- Scopes ----------
 
-    public function scopeDitolak($query)
+    public function scopeByRole($query, string $role)
     {
-        return $query->where('status', 'ditolak');
+        return $query->where('role', $role);
     }
 }

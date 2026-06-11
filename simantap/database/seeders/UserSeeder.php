@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class UserSeeder extends Seeder
 {
@@ -13,68 +13,58 @@ class UserSeeder extends Seeder
         $users = [
             [
                 'name'     => 'Super Administrator',
-                'email'    => 'superadmin@simantap.id',
-                'nip'      => '000000000000000001',
-                'jabatan'  => 'Super Administrator',
+                'email'    => 'superadmin@poltekkpsorong.ac.id',
+                'password' => Hash::make('password123'),
                 'role'     => 'super_admin',
             ],
             [
-                'name'     => 'Kepala Satker (KPA)',
-                'email'    => 'kpa@simantap.id',
-                'nip'      => '197001011990031001',
-                'jabatan'  => 'Kepala Politeknik KP Sorong (KPA)',
+                'name'     => 'Kuasa Pengguna Anggaran',
+                'email'    => 'kpa@poltekkpsorong.ac.id',
+                'password' => Hash::make('password123'),
                 'role'     => 'kpa',
             ],
             [
                 'name'     => 'Pejabat Pembuat Komitmen',
-                'email'    => 'ppk@simantap.id',
-                'nip'      => '197502151999031002',
-                'jabatan'  => 'PPK Kegiatan Pengembangan SDM',
+                'email'    => 'ppk@poltekkpsorong.ac.id',
+                'password' => Hash::make('password123'),
                 'role'     => 'ppk',
             ],
             [
                 'name'     => 'Pembina Karakter',
-                'email'    => 'pembina@simantap.id',
-                'nip'      => '198003202005011003',
-                'jabatan'  => 'Pembina Karakter Taruna',
+                'email'    => 'pembina@poltekkpsorong.ac.id',
+                'password' => Hash::make('password123'),
                 'role'     => 'pembina_karakter',
             ],
             [
-                'name'     => 'Ketua Senat Taruna',
-                'email'    => 'senat@simantap.id',
-                'nip'      => 'ST-2022-001',
-                'jabatan'  => 'Ketua Senat Taruna',
+                'name'     => 'Senat Taruna',
+                'email'    => 'senat@poltekkpsorong.ac.id',
+                'password' => Hash::make('password123'),
                 'role'     => 'senat_taruna',
             ],
             [
-                'name'     => 'Tim Auditor',
-                'email'    => 'auditor@simantap.id',
-                'nip'      => '198506102010121004',
-                'jabatan'  => 'Auditor Internal',
+                'name'     => 'Auditor Internal',
+                'email'    => 'auditor@poltekkpsorong.ac.id',
+                'password' => Hash::make('password123'),
                 'role'     => 'auditor',
             ],
             [
                 'name'     => 'Viewer',
-                'email'    => 'viewer@simantap.id',
-                'nip'      => '000000000000000002',
-                'jabatan'  => 'Pengguna Terbatas',
+                'email'    => 'viewer@poltekkpsorong.ac.id',
+                'password' => Hash::make('password123'),
                 'role'     => 'viewer',
             ],
         ];
 
-        foreach ($users as $data) {
+        foreach ($users as $userData) {
+            $role = $userData['role'];
+            unset($userData['role']);
+
             $user = User::firstOrCreate(
-                ['email' => $data['email']],
-                [
-                    'name'              => $data['name'],
-                    'nip'               => $data['nip'],
-                    'jabatan'           => $data['jabatan'],
-                    'password'          => Hash::make('password123'),
-                    'email_verified_at' => now(),
-                    'is_active'         => true,
-                ]
+                ['email' => $userData['email']],
+                $userData
             );
-            $user->assignRole($data['role']);
+
+            $user->syncRoles([$role]);
         }
     }
 }

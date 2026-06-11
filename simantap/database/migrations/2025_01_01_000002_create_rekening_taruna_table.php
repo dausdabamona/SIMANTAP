@@ -10,13 +10,14 @@ return new class extends Migration
     {
         Schema::create('rekening_taruna', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('taruna_id')->unique()->constrained('taruna')->cascadeOnDelete();
-            $table->string('bank', 100)->comment('Nama bank');
-            $table->string('nomor_rekening', 50)->unique()->comment('Nomor rekening individual taruna');
-            $table->string('nama_pemilik', 255)->comment('Nama pemilik sesuai buku tabungan');
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('taruna_id')->constrained('taruna')->cascadeOnDelete();
+            $table->string('bank', 50);
+            $table->string('nomor_rekening', 30)->unique();
+            $table->string('nama_pemilik', 100);
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index('taruna_id');
         });
     }
 

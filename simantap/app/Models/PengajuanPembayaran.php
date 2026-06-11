@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use App\Enums\StatusPembayaran;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PengajuanPembayaran extends Model
 {
@@ -17,103 +14,97 @@ class PengajuanPembayaran extends Model
     protected $table = 'pengajuan_pembayaran';
 
     protected $fillable = [
-        'nomor_pengajuan', 'periode_bulan', 'periode_tahun',
-        'kontrak_id', 'pagu_anggaran_id',
-        'total_taruna', 'total_porsi', 'total_nilai',
-        'status', 'catatan',
-        'nomor_surat_persetujuan', 'tanggal_surat_persetujuan',
-        'nomor_permohonan_kppn', 'tanggal_permohonan_kppn',
-        'nomor_sp2d', 'tanggal_sp2d',
-        'bukti_transfer_kppn', 'bukti_debit_bank', 'bukti_transfer_penyedia',
-        'invoice_penyedia', 'file_lpj', 'file_daftar_ttd_penerima',
-        'created_by', 'updated_by',
+        'nomor_pengajuan',
+        'periode_bulan',
+        'periode_tahun',
+        'total_taruna',
+        'total_porsi',
+        'total_nilai',
+        'status',
+        'nomor_sp2d',
+        'tanggal_sp2d',
+        'invoice_penyedia',
+        'bukti_transfer_kppn',
+        'bukti_debit_bank',
+        'bukti_transfer_penyedia',
     ];
 
     protected $casts = [
-        'status'                       => StatusPembayaran::class,
-        'periode_bulan'                => 'integer',
-        'periode_tahun'                => 'integer',
-        'total_nilai'                  => 'decimal:2',
-        'tanggal_surat_persetujuan'    => 'date',
-        'tanggal_permohonan_kppn'      => 'date',
-        'tanggal_sp2d'                 => 'date',
+        'periode_bulan'  => 'integer',
+        'periode_tahun'  => 'integer',
+        'total_taruna'   => 'integer',
+        'total_porsi'    => 'integer',
+        'total_nilai'    => 'decimal:2',
+        'tanggal_sp2d'   => 'date',
     ];
 
-    public function kontrak(): BelongsTo
-    {
-        return $this->belongsTo(KontrakMakan::class, 'kontrak_id');
-    }
+    const STATUS_DRAFT               = 'draft';
+    const STATUS_DIPROSES_PPK        = 'diproses_ppk';
+    const STATUS_DISETUJUI_KPA       = 'disetujui_kpa';
+    const STATUS_PERMOHONAN_KPPN     = 'permohonan_kppn';
+    const STATUS_SP2D                = 'sp2d';
+    const STATUS_TRANSFER_KPPN       = 'transfer_kppn';
+    const STATUS_DEBIT_BANK          = 'debit_bank';
+    const STATUS_TRANSFER_PENYEDIA   = 'transfer_penyedia';
+    const STATUS_KONFIRMASI_PENYEDIA = 'konfirmasi_penyedia';
+    const STATUS_LPJ_PPK             = 'lpj_ppk';
+    const STATUS_LPJ_KPA             = 'lpj_kpa';
+    const STATUS_SELESAI             = 'selesai';
 
-    public function paguAnggaran(): BelongsTo
-    {
-        return $this->belongsTo(PaguAnggaran::class, 'pagu_anggaran_id');
-    }
+    // ---------- Relationships ----------
 
-    public function rekapBulanan(): BelongsToMany
-    {
-        return $this->belongsToMany(RekapBulanan::class, 'pengajuan_rekap', 'pengajuan_id', 'rekap_id');
-    }
-
-    public function workflowPembayaran(): HasMany
+    public function workflow(): HasMany
     {
         return $this->hasMany(WorkflowPembayaran::class, 'pengajuan_id');
     }
 
-    public function createdBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function updatedBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'updated_by');
-    }
-
-    // Scopes
-
-    public function scopeByStatus($query, string $status)
-    {
-        return $query->where('status', $status);
-    }
+    // ---------- Scopes ----------
 
     public function scopeDraft($query)
     {
-        return $query->where('status', 'draft');
+        return $query->where('status', self::STATUS_DRAFT);
     }
 
-    public function scopeSelesai($query)
-    {
-        return $query->where('status', 'selesai');
-    }
-
-    public function scopePeriode($query, int $bulan, int $tahun)
+    public function scopeByPeriode($query, int $bulan, int $tahun)
     {
         return $query->where('periode_bulan', $bulan)->where('periode_tahun', $tahun);
     }
 
-    // Accessors
-
-    public function getPeriodeLabelAttribute(): string
+    public function scopeAktif($query)
     {
-        $bulan = \Carbon\Carbon::createFromDate($this->periode_tahun, $this->periode_bulan, 1);
-        return $bulan->translatedFormat('F Y');
+        return $query->whereNotIn('status', [self::STATUS_SELESAI]);
     }
 
-    public function getIsSelesaiAttribute(): bool
+    // ---------- Accessors ----------
+
+    public function getStatusLabelAttribute(): string
     {
-        return $this->status === StatusPembayaran::Selesai;
+        return match ($this->status) {
+            self::STATUS_DRAFT               => 'Draft',
+            self::STATUS_DIPROSES_PPK        => 'Diproses PPK',
+            self::STATUS_DISETUJUI_KPA       => 'Disetujui KPA',
+            self::STATUS_PERMOHONAN_KPPN     => 'Permohonan KPPN',
+            self::STATUS_SP2D                => 'SP2D Terbit',
+            self::STATUS_TRANSFER_KPPN       => 'Transfer dari KPPN',
+            self::STATUS_DEBIT_BANK          => 'Debit Bank',
+            self::STATUS_TRANSFER_PENYEDIA   => 'Transfer ke Penyedia',
+            self::STATUS_KONFIRMASI_PENYEDIA => 'Konfirmasi Penyedia',
+            self::STATUS_LPJ_PPK             => 'LPJ PPK',
+            self::STATUS_LPJ_KPA             => 'LPJ KPA',
+            self::STATUS_SELESAI             => 'Selesai',
+            default                          => ucfirst($this->status),
+        };
     }
 
-    public function getCanTransitionToAttribute(): array
+    public function getNamaBulanAttribute(): string
     {
-        return $this->status?->allowedTransitions() ?? [];
-    }
+        $bulan = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret',
+            4 => 'April',   5 => 'Mei',       6 => 'Juni',
+            7 => 'Juli',    8 => 'Agustus',   9 => 'September',
+            10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+        ];
 
-    /** Auto-generate nomor pengajuan */
-    public static function generateNomor(int $bulan, int $tahun): string
-    {
-        $prefix = config('simantap.nomor_dokumen.pengajuan');
-        $count  = static::whereYear('created_at', $tahun)->count() + 1;
-        return sprintf('%s/%04d/%03d', $prefix, $tahun, $count);
+        return $bulan[$this->periode_bulan] ?? '-';
     }
 }
