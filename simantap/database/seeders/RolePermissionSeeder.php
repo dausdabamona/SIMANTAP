@@ -160,7 +160,7 @@ class RolePermissionSeeder extends Seeder
             'pembayaran.konfirmasi', 'pembayaran.lpj',
             'pagu.view', 'pagu.manage',
             'senat_account.view', 'senat_account.kelola',
-            'laporan_bama.view', 'laporan_bama.finalisasi',
+            'laporan_bama.view', 'laporan_bama.buat', 'laporan_bama.finalisasi',
             'kegiatan_luar.view', 'kegiatan_luar.verifikasi',
             'pembayaran_luar.view', 'pembayaran_luar.proses',
             'pembayaran_luar.input_sp2d',
