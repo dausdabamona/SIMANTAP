@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PenyediaMakan extends Model
@@ -14,6 +15,7 @@ class PenyediaMakan extends Model
     protected $table = 'penyedia_makan';
 
     protected $fillable = [
+        'user_id',
         'nama',
         'npwp',
         'alamat',
@@ -25,6 +27,11 @@ class PenyediaMakan extends Model
     ];
 
     // ---------- Relationships ----------
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     public function kontrak(): HasMany
     {

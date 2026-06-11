@@ -71,6 +71,17 @@
             <div class="card">
                 <div class="card-header"><i class="bi bi-pen me-2"></i>Aksi Tanda Tangan</div>
                 <div class="card-body d-grid gap-2">
+                    @can('rekap.setujui')
+                    @if ($rekap->status === 'draft')
+                    <form method="POST" action="{{ route('rekap.setujui-wadir', $rekap) }}">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-teal w-100" style="color:#0d9488;border-color:#0d9488">
+                            <i class="bi bi-check2-circle me-1"></i>Setujui (Wadir III)
+                        </button>
+                    </form>
+                    @endif
+                    @endcan
+
                     @can('rekap.tandatangani_pembina')
                     @if ($rekap->status === 'dihitung_ppk')
                     <form method="POST" action="{{ route('rekap.tandatangan', $rekap) }}">

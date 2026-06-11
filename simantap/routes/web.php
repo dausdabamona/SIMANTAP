@@ -45,6 +45,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ── Rekap & Pembayaran ───────────────────────────────────
     Route::resource('rekap', \App\Http\Controllers\RekapBulananController::class);
     Route::post('rekap/hitung',                       [\App\Http\Controllers\RekapBulananController::class, 'hitungPeriode'])->name('rekap.hitung');
+    Route::post('rekap/{rekap}/setujui-wadir',         [\App\Http\Controllers\RekapBulananController::class, 'setujuiWadir'])->name('rekap.setujui-wadir');
     Route::post('rekap/{rekap}/tandatangan',          [\App\Http\Controllers\RekapBulananController::class, 'tandatangan'])->name('rekap.tandatangan');
     Route::post('rekap/{rekap}/finalize',             [\App\Http\Controllers\RekapBulananController::class, 'finalize'])->name('rekap.finalize');
     Route::resource('pemblokiran', \App\Http\Controllers\PemblokiranController::class);

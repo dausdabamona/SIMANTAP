@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -21,6 +22,7 @@ class Taruna extends Model
         'angkatan',
         'prodi',
         'kelas',
+        'prodi_id',
         'jenis_kelamin',
         'status_taruna',
         'penerima_bantuan',
@@ -32,6 +34,11 @@ class Taruna extends Model
     ];
 
     // ---------- Relationships ----------
+
+    public function prodi(): BelongsTo
+    {
+        return $this->belongsTo(Prodi::class, 'prodi_id');
+    }
 
     public function rekening(): HasOne
     {

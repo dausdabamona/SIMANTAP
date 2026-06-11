@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('kontrak_id')->constrained('kontrak_makan')->cascadeOnDelete();
             $table->enum('status', [
                 'draft',
+                'disetujui_wadir',
                 'dihitung_ppk',
                 'ditandatangani_pembina',
                 'ditandatangani_ppk',

@@ -70,6 +70,19 @@ class RekapBulananController extends Controller
             foreach ($rekapData as $row) {
                 $nilaiPerPorsi = $kontrak->harga_porsi;
 
+                // Only advance status if currently at disetujui_wadir (or draft for initial create)
+                $existing = RekapBulanan::where([
+                    'taruna_id'    => $row->taruna_id,
+                    'periode_bulan'=> $bulan,
+                    'periode_tahun'=> $tahun,
+                ])->first();
+
+                $newStatus = match(true) {
+                    $existing === null => RekapBulanan::STATUS_DRAFT,
+                    $existing->status === RekapBulanan::STATUS_DISETUJUI_WADIR => RekapBulanan::STATUS_DIHITUNG_PPK,
+                    default => $existing->status,
+                };
+
                 RekapBulanan::updateOrCreate(
                     [
                         'taruna_id'    => $row->taruna_id,
@@ -80,7 +93,7 @@ class RekapBulananController extends Controller
                         'total_porsi'  => $row->total_porsi,
                         'nilai_bantuan'=> $row->total_porsi * $nilaiPerPorsi,
                         'kontrak_id'   => $kontrak->id,
-                        'status'       => RekapBulanan::STATUS_DIHITUNG_PPK,
+                        'status'       => $newStatus,
                     ]
                 );
             }
@@ -126,6 +139,19 @@ class RekapBulananController extends Controller
         return redirect()->route('rekap.index')->with('success', 'Rekap dihapus.');
     }
 
+    public function setujuiWadir(RekapBulanan $rekap): RedirectResponse
+    {
+        abort_unless(auth()->user()->can('rekap.setujui'), 403);
+
+        if ($rekap->status !== RekapBulanan::STATUS_DRAFT) {
+            return back()->with('error', 'Rekap harus berstatus Draft untuk disetujui Wadir III.');
+        }
+
+        $rekap->update(['status' => RekapBulanan::STATUS_DISETUJUI_WADIR]);
+
+        return back()->with('success', 'Rekap bulanan disetujui oleh Wadir III.');
+    }
+
     public function tandatangan(Request $request, RekapBulanan $rekap): RedirectResponse
     {
         $request->validate(['role' => 'required|in:pembina_karakter,ppk,kpa']);
@@ -164,6 +190,7 @@ class RekapBulananController extends Controller
     {
         $map = [
             RekapBulanan::STATUS_DRAFT                   => 'secondary',
+            RekapBulanan::STATUS_DISETUJUI_WADIR         => 'teal',
             RekapBulanan::STATUS_DIHITUNG_PPK            => 'info',
             RekapBulanan::STATUS_DITANDATANGANI_PEMBINA  => 'primary',
             RekapBulanan::STATUS_DITANDATANGANI_PPK      => 'warning',
@@ -172,6 +199,7 @@ class RekapBulananController extends Controller
         ];
         $label = [
             RekapBulanan::STATUS_DRAFT                   => 'Draft',
+            RekapBulanan::STATUS_DISETUJUI_WADIR         => 'Disetujui Wadir III',
             RekapBulanan::STATUS_DIHITUNG_PPK            => 'Dihitung PPK',
             RekapBulanan::STATUS_DITANDATANGANI_PEMBINA  => 'TTD Pembina',
             RekapBulanan::STATUS_DITANDATANGANI_PPK      => 'TTD PPK',

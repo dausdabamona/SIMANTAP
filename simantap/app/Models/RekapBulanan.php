@@ -32,6 +32,7 @@ class RekapBulanan extends Model
     ];
 
     const STATUS_DRAFT                   = 'draft';
+    const STATUS_DISETUJUI_WADIR         = 'disetujui_wadir';
     const STATUS_DIHITUNG_PPK            = 'dihitung_ppk';
     const STATUS_DITANDATANGANI_PEMBINA  = 'ditandatangani_pembina';
     const STATUS_DITANDATANGANI_PPK      = 'ditandatangani_ppk';
