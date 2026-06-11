@@ -151,6 +151,9 @@ class PemesananHarianController extends Controller
 
     public function verifikasiPembina(Request $request, PemesananHarian $pemesanan): RedirectResponse
     {
+        if (! $pemesanan->ttd_senat_id) {
+            return back()->with('error', 'Pemesanan harus ditandatangani Senat terlebih dahulu.');
+        }
         $request->validate(['catatan_pembina' => 'nullable|string|max:500']);
         $pemesanan->update([
             'status'        => PemesananHarian::STATUS_DIVERIFIKASI_PEMBINA,

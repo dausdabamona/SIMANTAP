@@ -59,7 +59,7 @@ class RekapBulananController extends Controller
         $rekapData = PenerimaanMakan::query()
             ->whereMonth('tanggal', $bulan)
             ->whereYear('tanggal', $tahun)
-            ->where('status_eligibilitas', 'eligible')
+            ->where('status_eligibilitas', 'dapat')
             ->select('taruna_id', DB::raw('SUM(jumlah_porsi_diterima) as total_porsi'))
             ->groupBy('taruna_id')
             ->get();

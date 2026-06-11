@@ -74,6 +74,7 @@ class PengajuanPembayaranController extends Controller
 
             WorkflowPembayaran::create([
                 'pengajuan_id' => $pengajuan->id,
+                'aksi'         => 'buat',
                 'status_dari'  => null,
                 'status_ke'    => PengajuanPembayaran::STATUS_DRAFT,
                 'user_id'      => auth()->id(),
@@ -121,8 +122,26 @@ class PengajuanPembayaranController extends Controller
             'catatan' => 'nullable|string|max:500',
         ]);
 
-        $aksi     = $request->aksi;
+        $aksi      = $request->aksi;
         $statusNow = $pembayaran->status;
+
+        // Authorization: each action requires its own permission
+        $permMap = [
+            'proses_ppk'          => 'pembayaran.proses_ppk',
+            'setujui_kpa'         => 'pembayaran.setujui_kpa',
+            'permohonan_kppn'     => 'pembayaran.permohonan_kppn',
+            'input_sp2d'          => 'pembayaran.input_sp2d',
+            'transfer_kppn'       => 'pembayaran.upload',
+            'debit_bank'          => 'pembayaran.upload',
+            'transfer_penyedia'   => 'pembayaran.upload',
+            'konfirmasi_penyedia' => 'pembayaran.konfirmasi',
+            'lpj_ppk'             => 'pembayaran.lpj',
+            'lpj_kpa'             => 'pembayaran.lpj',
+            'selesai'             => 'pembayaran.selesai',
+        ];
+        if (isset($permMap[$aksi])) {
+            abort_unless(auth()->user()->can($permMap[$aksi]), 403);
+        }
 
         [$statusBaru, $fieldUpdate] = match ($aksi) {
             'proses_ppk'          => [PengajuanPembayaran::STATUS_DIPROSES_PPK, []],
@@ -144,6 +163,7 @@ class PengajuanPembayaranController extends Controller
 
             WorkflowPembayaran::create([
                 'pengajuan_id' => $pembayaran->id,
+                'aksi'         => $request->aksi,
                 'status_dari'  => $statusNow,
                 'status_ke'    => $statusBaru,
                 'user_id'      => auth()->id(),
