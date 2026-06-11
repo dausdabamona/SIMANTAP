@@ -40,7 +40,7 @@ class ProfileController extends Controller
 
     public function editPassword(): View
     {
-        return view('profile.edit');
+        return view('profile.password');
     }
 
     public function destroy(Request $request): RedirectResponse

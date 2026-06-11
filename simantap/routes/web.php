@@ -22,10 +22,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/password/change', [ProfileController::class, 'editPassword'])->name('password.change');
 
     // ── Master Data ──────────────────────────────────────────
-    Route::resource('taruna',          \App\Http\Controllers\TarunaController::class);
+    Route::resource('taruna', \App\Http\Controllers\TarunaController::class);
+    Route::post('taruna/{id}/restore',  [\App\Http\Controllers\TarunaController::class, 'restore'])->name('taruna.restore');
+    Route::post('taruna/import',        [\App\Http\Controllers\TarunaController::class, 'import'])->name('taruna.import');
+    Route::get('taruna/export',         [\App\Http\Controllers\TarunaController::class, 'export'])->name('taruna.export');
+    Route::get('taruna/template',       [\App\Http\Controllers\TarunaController::class, 'template'])->name('taruna.template');
     Route::resource('rekening-taruna', \App\Http\Controllers\RekeningTarunaController::class);
     Route::resource('penyedia',        \App\Http\Controllers\PenyediaMakanController::class);
-    Route::resource('kontrak',         \App\Http\Controllers\KontrakMakanController::class);
+    Route::resource('kontrak', \App\Http\Controllers\KontrakMakanController::class);
+    Route::patch('kontrak/{kontrak}/status', [\App\Http\Controllers\KontrakMakanController::class, 'updateStatus'])->name('kontrak.status');
     Route::resource('sk-penerima',     \App\Http\Controllers\SkPenerimaController::class);
     Route::resource('jadwal-menu',     \App\Http\Controllers\JadwalMenuController::class);
 
@@ -52,7 +57,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/audit-log',     \App\Http\Controllers\AuditLogController::class)->name('audit-log.index');
 
     // ── Pengaturan ───────────────────────────────────────────
-    Route::resource('users',     \App\Http\Controllers\UserController::class);
+    Route::resource('users', \App\Http\Controllers\UserController::class);
+    Route::post('users/{id}/restore', [\App\Http\Controllers\UserController::class, 'restore'])->name('users.restore');
     Route::resource('pagu',      \App\Http\Controllers\PaguAnggaranController::class);
 });
 
