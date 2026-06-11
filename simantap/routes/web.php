@@ -43,9 +43,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('monitoring',  \App\Http\Controllers\MonitoringController::class);
 
     // ── Rekap & Pembayaran ───────────────────────────────────
-    Route::resource('rekap',       \App\Http\Controllers\RekapBulananController::class);
+    Route::resource('rekap', \App\Http\Controllers\RekapBulananController::class);
+    Route::post('rekap/hitung',                       [\App\Http\Controllers\RekapBulananController::class, 'hitungPeriode'])->name('rekap.hitung');
+    Route::post('rekap/{rekap}/tandatangan',          [\App\Http\Controllers\RekapBulananController::class, 'tandatangan'])->name('rekap.tandatangan');
+    Route::post('rekap/{rekap}/finalize',             [\App\Http\Controllers\RekapBulananController::class, 'finalize'])->name('rekap.finalize');
     Route::resource('pemblokiran', \App\Http\Controllers\PemblokiranController::class);
-    Route::resource('pembayaran',  \App\Http\Controllers\PengajuanPembayaranController::class);
+    Route::post('pemblokiran/{pemblokiranUangMakan}/proses', [\App\Http\Controllers\PemblokiranController::class, 'proses'])->name('pemblokiran.proses');
+    Route::resource('pembayaran', \App\Http\Controllers\PengajuanPembayaranController::class);
+    Route::post('pembayaran/{pembayaran}/transisi', [\App\Http\Controllers\PengajuanPembayaranController::class, 'transisi'])->name('pembayaran.transisi');
 
     // ── Laporan ──────────────────────────────────────────────
     Route::prefix('laporan')->name('laporan.')->group(function () {
