@@ -2,51 +2,50 @@
 
 namespace App\Models;
 
-use App\Enums\JenisMakan;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PenerimaanMakan extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'penerimaan_makan';
 
     protected $fillable = [
-        'pemesanan_id', 'taruna_id', 'tanggal', 'jenis_makan',
-        'jumlah_porsi_diterima', 'status_eligibilitas', 'alasan_pengecualian',
-        'file_lampiran_pengecualian', 'ditandatangani', 'ditandatangani_at',
-        'latitude', 'longitude', 'alamat_lokasi', 'captured_at', 'created_by',
+        'tanggal',
+        'taruna_id',
+        'jenis_makan',
+        'jumlah_porsi_diterima',
+        'status_eligibilitas',
+        'alasan_pengecualian',
+        'file_lampiran_pengecualian',
+        'lat',
+        'long',
     ];
 
     protected $casts = [
-        'jenis_makan'        => JenisMakan::class,
-        'tanggal'            => 'date',
-        'ditandatangani'     => 'boolean',
-        'ditandatangani_at'  => 'datetime',
-        'captured_at'        => 'datetime',
-        'latitude'           => 'decimal:7',
-        'longitude'          => 'decimal:7',
+        'tanggal'               => 'date',
+        'jumlah_porsi_diterima' => 'integer',
+        'lat'                   => 'decimal:8',
+        'long'                  => 'decimal:8',
     ];
 
-    public function pemesanan(): BelongsTo
-    {
-        return $this->belongsTo(PemesananHarian::class, 'pemesanan_id');
-    }
+    // ---------- Relationships ----------
 
     public function taruna(): BelongsTo
     {
-        return $this->belongsTo(Taruna::class);
+        return $this->belongsTo(Taruna::class, 'taruna_id');
     }
 
-    public function createdBy(): BelongsTo
+    public function foto(): HasMany
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->hasMany(MonitoringFoto::class, 'penerimaan_id');
     }
 
-    // Scopes
+    // ---------- Scopes ----------
 
     public function scopeDapat($query)
     {
@@ -58,19 +57,26 @@ class PenerimaanMakan extends Model
         return $query->where('status_eligibilitas', 'tidak_dapat');
     }
 
-    public function scopePeriode($query, int $bulan, int $tahun)
+    public function scopeByTaruna($query, int $tarunaId)
     {
-        return $query->whereMonth('tanggal', $bulan)->whereYear('tanggal', $tahun);
+        return $query->where('taruna_id', $tarunaId);
     }
 
-    // Business rule: tidak_dapat wajib ada lampiran
-    public function getLampiranRequiredAttribute(): bool
+    public function scopeByTanggal($query, string $tanggal)
     {
-        return $this->status_eligibilitas === 'tidak_dapat';
+        return $query->where('tanggal', $tanggal);
     }
 
-    public function getHasGeotagAttribute(): bool
+    public function scopeByPeriode($query, int $bulan, int $tahun)
     {
-        return $this->latitude !== null && $this->longitude !== null;
+        return $query->whereMonth('tanggal', $bulan)
+                     ->whereYear('tanggal', $tahun);
+    }
+
+    // ---------- Accessors ----------
+
+    public function getHasGeolocationAttribute(): bool
+    {
+        return $this->lat !== null && $this->long !== null;
     }
 }

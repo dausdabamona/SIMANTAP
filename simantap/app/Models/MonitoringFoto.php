@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MonitoringFoto extends Model
@@ -13,47 +13,40 @@ class MonitoringFoto extends Model
     protected $table = 'monitoring_foto';
 
     protected $fillable = [
-        'pemesanan_harian_id',
-        'jenis_foto',
-        'url_foto',
-        'diunggah_oleh',
-        'keterangan',
+        'penerimaan_id',
+        'monitoring_id',
+        'file_path',
+        'urutan',
         'lat',
         'long',
+        'captured_at',
     ];
 
     protected $casts = [
-        'lat' => 'decimal:7',
-        'long' => 'decimal:7',
+        'urutan'      => 'integer',
+        'lat'         => 'decimal:8',
+        'long'        => 'decimal:8',
+        'captured_at' => 'datetime',
     ];
 
-    public function pemesananHarian(): BelongsTo
+    // ---------- Relationships ----------
+
+    public function penerimaan(): BelongsTo
     {
-        return $this->belongsTo(PemesananHarian::class);
+        return $this->belongsTo(PenerimaanMakan::class, 'penerimaan_id');
     }
 
-    public function diunggahOleh(): BelongsTo
+    // ---------- Scopes ----------
+
+    public function scopeByUrutan($query)
     {
-        return $this->belongsTo(User::class, 'diunggah_oleh');
+        return $query->orderBy('urutan');
     }
 
-    public function scopeByJenisFoto($query, string $jenisFoto)
-    {
-        return $query->where('jenis_foto', $jenisFoto);
-    }
+    // ---------- Accessors ----------
 
-    public function scopeSebelum($query)
+    public function getUrlAttribute(): string
     {
-        return $query->where('jenis_foto', 'sebelum');
-    }
-
-    public function scopeSesudah($query)
-    {
-        return $query->where('jenis_foto', 'sesudah');
-    }
-
-    public function scopeDistribusi($query)
-    {
-        return $query->where('jenis_foto', 'distribusi');
+        return asset('storage/' . $this->file_path);
     }
 }

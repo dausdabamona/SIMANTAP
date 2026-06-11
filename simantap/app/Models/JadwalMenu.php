@@ -2,12 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class JadwalMenu extends Model
 {
@@ -16,37 +13,32 @@ class JadwalMenu extends Model
     protected $table = 'jadwal_menu';
 
     protected $fillable = [
-        'kontrak_makan_id',
         'tanggal',
         'jenis_makan',
-        'menu_utama',
-        'menu_tambahan',
-        'menu_buah',
-        'menu_minuman',
-        'catatan',
+        'menu',
+        'nilai_gizi',
+        'porsi_per_taruna',
     ];
 
     protected $casts = [
-        'tanggal' => 'date',
+        'tanggal'          => 'date',
+        'porsi_per_taruna' => 'integer',
     ];
 
-    public function kontrakMakan(): BelongsTo
-    {
-        return $this->belongsTo(KontrakMakan::class);
-    }
-
-    public function pemesananHarian(): HasOne
-    {
-        return $this->hasOne(PemesananHarian::class);
-    }
+    // ---------- Scopes ----------
 
     public function scopeByTanggal($query, string $tanggal)
     {
         return $query->where('tanggal', $tanggal);
     }
 
-    public function scopeByJenisMakan($query, string $jenisMakan)
+    public function scopeByJenisMakan($query, string $jenis)
     {
-        return $query->where('jenis_makan', $jenisMakan);
+        return $query->where('jenis_makan', $jenis);
+    }
+
+    public function scopeByPeriode($query, string $dari, string $sampai)
+    {
+        return $query->whereBetween('tanggal', [$dari, $sampai]);
     }
 }

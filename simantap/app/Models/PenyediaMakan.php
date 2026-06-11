@@ -4,9 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PenyediaMakan extends Model
 {
@@ -15,16 +14,19 @@ class PenyediaMakan extends Model
     protected $table = 'penyedia_makan';
 
     protected $fillable = [
-        'nama_penyedia', 'npwp', 'alamat', 'telepon', 'email',
-        'bank', 'rekening', 'nama_pemilik_rekening',
-        'is_active', 'created_by',
+        'nama',
+        'npwp',
+        'alamat',
+        'telp',
+        'email',
+        'bank',
+        'nomor_rekening',
+        'nama_pemilik_rekening',
     ];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-    ];
+    // ---------- Relationships ----------
 
-    public function kontrakMakan(): HasMany
+    public function kontrak(): HasMany
     {
         return $this->hasMany(KontrakMakan::class, 'penyedia_id');
     }
@@ -32,15 +34,5 @@ class PenyediaMakan extends Model
     public function kontrakAktif(): HasMany
     {
         return $this->hasMany(KontrakMakan::class, 'penyedia_id')->where('status', 'aktif');
-    }
-
-    public function createdBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function scopeAktif($query)
-    {
-        return $query->where('is_active', true);
     }
 }
