@@ -15,6 +15,35 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // ── Dashboard per Role ───────────────────────────────────
+    Route::middleware('role:super_admin')->prefix('admin')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'superAdmin'])->name('dashboard.super_admin');
+    });
+    Route::middleware('role:kpa')->prefix('kpa')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'kpa'])->name('dashboard.kpa');
+    });
+    Route::middleware('role:ppk')->prefix('ppk')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'ppk'])->name('dashboard.ppk');
+    });
+    Route::middleware('role:wadir_iii')->prefix('wadir')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'wadirIii'])->name('dashboard.wadir_iii');
+    });
+    Route::middleware('role:pembina_karakter')->prefix('pembina')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'pembinaKarakter'])->name('dashboard.pembina');
+    });
+    Route::middleware('role:senat_taruna')->prefix('senat')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'senatTaruna'])->name('dashboard.senat');
+    });
+    Route::middleware('role:kaprodi')->prefix('kaprodi')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'kaprodi'])->name('dashboard.kaprodi');
+    });
+    Route::middleware('role:penyedia')->prefix('penyedia')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'penyedia'])->name('dashboard.penyedia');
+    });
+    Route::middleware('role:auditor')->prefix('auditor')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'auditor'])->name('dashboard.auditor');
+    });
+
     // Profil & Password
     Route::get('/profile',    [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile',  [ProfileController::class, 'update'])->name('profile.update');

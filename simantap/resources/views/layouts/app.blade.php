@@ -41,7 +41,7 @@
 
             {{-- Dashboard --}}
             <span class="sidebar-section-title">Utama</span>
-            <a href="{{ route('dashboard') }}" class="sidebar-link @activeRoute('dashboard')">
+            <a href="{{ route(auth()->user()->dashboardRoute()) }}" class="sidebar-link @activeRoute('dashboard*')">
                 <i class="bi bi-speedometer2 nav-icon"></i> Dashboard
             </a>
 
@@ -128,6 +128,23 @@
             @can('pembayaran.view')
             <a href="{{ route('pembayaran.index') }}" class="sidebar-link @activeRoute('pembayaran.*')">
                 <i class="bi bi-send-fill nav-icon"></i> Pengajuan Pembayaran
+            </a>
+            @endcan
+            @endcanany
+
+            {{-- Kegiatan Luar Kampus --}}
+            @canany(['kegiatan_luar.view','pembayaran_luar.view'])
+            <span class="sidebar-section-title">Luar Kampus</span>
+
+            @can('kegiatan_luar.view')
+            <a href="{{ route('kegiatan-luar.index') }}" class="sidebar-link @activeRoute('kegiatan-luar.*')">
+                <i class="bi bi-geo-alt-fill nav-icon"></i> Kegiatan Luar Kampus
+            </a>
+            @endcan
+
+            @can('pembayaran_luar.view')
+            <a href="{{ route('pembayaran-luar.index') }}" class="sidebar-link @activeRoute('pembayaran-luar.*')">
+                <i class="bi bi-cash-stack nav-icon"></i> Pembayaran Luar Kampus
             </a>
             @endcan
             @endcanany

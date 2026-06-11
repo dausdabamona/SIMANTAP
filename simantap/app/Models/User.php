@@ -46,4 +46,22 @@ class User extends Authenticatable
         }
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=0062cc&color=fff';
     }
+
+    public function dashboardRoute(): string
+    {
+        $map = [
+            'super_admin'       => 'dashboard.super_admin',
+            'kpa'               => 'dashboard.kpa',
+            'ppk'               => 'dashboard.ppk',
+            'wadir_iii'         => 'dashboard.wadir_iii',
+            'pembina_karakter'  => 'dashboard.pembina',
+            'senat_taruna'      => 'dashboard.senat',
+            'kaprodi'           => 'dashboard.kaprodi',
+            'penyedia'          => 'dashboard.penyedia',
+            'auditor'           => 'dashboard.auditor',
+        ];
+
+        $roleName = $this->getRoleNames()->first();
+        return $map[$roleName] ?? 'dashboard.ppk';
+    }
 }

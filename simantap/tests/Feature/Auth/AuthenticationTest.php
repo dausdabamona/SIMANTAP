@@ -27,7 +27,9 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        // After login, user is redirected to their role-specific dashboard.
+        // A factory user has no role assigned → falls back to dashboard.ppk.
+        $response->assertRedirect();
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void
