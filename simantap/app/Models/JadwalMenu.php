@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class JadwalMenu extends Model
@@ -13,11 +14,8 @@ class JadwalMenu extends Model
     protected $table = 'jadwal_menu';
 
     protected $fillable = [
-        'tanggal',
-        'jenis_makan',
-        'menu',
-        'nilai_gizi',
-        'porsi_per_taruna',
+        'kontrak_id', 'tanggal', 'jenis_makan', 'menu',
+        'porsi_per_taruna', 'catatan', 'created_by', 'updated_by',
     ];
 
     protected $casts = [
@@ -25,20 +23,30 @@ class JadwalMenu extends Model
         'porsi_per_taruna' => 'integer',
     ];
 
-    // ---------- Scopes ----------
+    const JENIS = ['sarapan', 'makan_siang', 'makan_malam'];
 
-    public function scopeByTanggal($query, string $tanggal)
+    public function kontrak(): BelongsTo
     {
-        return $query->where('tanggal', $tanggal);
+        return $this->belongsTo(KontrakMakan::class, 'kontrak_id');
     }
 
-    public function scopeByJenisMakan($query, string $jenis)
+    public function createdBy(): BelongsTo
     {
-        return $query->where('jenis_makan', $jenis);
+        return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function scopeByPeriode($query, string $dari, string $sampai)
+    public function scopeByKontrakTanggal($query, int $kontrakId, string $tanggal)
     {
-        return $query->whereBetween('tanggal', [$dari, $sampai]);
+        return $query->where('kontrak_id', $kontrakId)->where('tanggal', $tanggal);
+    }
+
+    public function getJenisMakanLabelAttribute(): string
+    {
+        return match ($this->jenis_makan) {
+            'sarapan'     => 'Sarapan',
+            'makan_siang' => 'Makan Siang',
+            'makan_malam' => 'Makan Malam',
+            default       => ucfirst($this->jenis_makan),
+        };
     }
 }
