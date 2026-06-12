@@ -35,9 +35,12 @@
                                 <select name="kontrak_id" class="form-select @error('kontrak_id') is-invalid @enderror" id="kontrakSelect" required>
                                     <option value="">-- Pilih Kontrak --</option>
                                     @foreach ($kontrakList as $k)
-                                        <option value="{{ $k->id }}" data-harga="{{ $k->harga_porsi }}"
+                                        <option value="{{ $k->id }}"
+                                                data-harga="{{ $k->harga_porsi }}"
+                                                data-harga-porsi="{{ $k->harga_porsi }}"
                                             @selected(old('kontrak_id', $kontrakList->count() === 1 ? $k->id : null) == $k->id)>
-                                            {{ $k->nomor_kontrak }} (Rp {{ number_format($k->harga_porsi, 0, ',', '.') }}/porsi)
+                                            {{ $k->nomor_kontrak }} — Rp {{ number_format($k->harga_porsi, 0, ',', '.') }}/porsi
+                                            (s.d. {{ $k->tanggal_selesai->format('d/m/Y') }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -63,11 +66,29 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Harga per Porsi (Rp) <span class="text-danger">*</span></label>
-                                <input type="number" name="harga_porsi_snapshot" id="hargaPorsi"
-                                    class="form-control @error('harga_porsi_snapshot') is-invalid @enderror"
-                                    value="{{ old('harga_porsi_snapshot', $pemesanan?->harga_porsi_snapshot ?? $hargaDefault) }}"
-                                    min="0" step="0.01" required>
-                                @error('harga_porsi_snapshot')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                @if ($pemesanan)
+                                    {{-- Edit mode: tampil saja, tidak bisa diubah --}}
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">Rp</span>
+                                        <input type="text" class="form-control bg-light"
+                                               value="{{ number_format($pemesanan->harga_porsi_snapshot, 0, ',', '.') }}"
+                                               readonly tabindex="-1">
+                                    </div>
+                                @else
+                                    {{-- Create mode: readonly display + hidden value --}}
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">Rp</span>
+                                        <input type="text" id="hargaPorsiDisplay" class="form-control bg-light"
+                                               placeholder="Otomatis dari kontrak"
+                                               readonly tabindex="-1">
+                                    </div>
+                                    <input type="hidden" name="harga_porsi_snapshot" id="hargaPorsi"
+                                           value="{{ old('harga_porsi_snapshot') }}">
+                                @endif
+                                <div class="form-text text-muted">
+                                    <i class="bi bi-lock-fill me-1"></i>Harga diambil otomatis dari kontrak — tidak dapat diubah.
+                                </div>
+                                @error('harga_porsi_snapshot')<div class="text-danger small">{{ $message }}</div>@enderror
                             </div>
 
                             {{-- Kalkulasi real-time --}}
@@ -156,14 +177,29 @@ function updatePreview() {
     $('#previewNilai').text('Rp ' + totalNilai.toLocaleString('id-ID'));
 }
 
-$('#jumlahTaruna, #hargaPorsi').on('input', updatePreview);
+$('#jumlahTaruna').on('input', updatePreview);
 
-// Auto-fill harga porsi dari kontrak yang dipilih
+// Auto-fill harga porsi dari kontrak yang dipilih (readonly display + hidden value)
 $('#kontrakSelect').on('change', function () {
-    const harga = $(this).find(':selected').data('harga');
-    if (harga) { $('#hargaPorsi').val(harga); updatePreview(); }
+    const selected = $(this).find(':selected');
+    const harga = selected.data('harga-porsi') || selected.data('harga') || 0;
+    $('#hargaPorsi').val(harga);
+    $('#hargaPorsiDisplay').val(harga ? new Intl.NumberFormat('id-ID').format(harga) : '');
+    updatePreview();
 });
 
-updatePreview();
+// Auto-select jika hanya ada satu kontrak aktif
+$(document).ready(function () {
+    const select = document.getElementById('kontrakSelect');
+    if (select && select.options.length === 2) {
+        select.selectedIndex = 1;
+        $('#kontrakSelect').trigger('change');
+    } else if ($('#hargaPorsi').val()) {
+        // Restore display on validation error
+        const harga = parseFloat($('#hargaPorsi').val()) || 0;
+        if (harga) $('#hargaPorsiDisplay').val(new Intl.NumberFormat('id-ID').format(harga));
+    }
+    updatePreview();
+});
 </script>
 @endpush

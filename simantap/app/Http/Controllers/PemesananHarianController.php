@@ -56,26 +56,35 @@ class PemesananHarianController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $data = $request->validate([
-            'tanggal'              => 'required|date',
-            'kontrak_id'           => 'required|exists:kontrak_makan,id',
-            'jumlah_taruna_hadir'  => 'required|integer|min:0',
-            'harga_porsi_snapshot' => 'required|numeric|min:0',
-            'catatan_menu'         => 'nullable|string|max:500',
-            'menu_sesuai_jadwal'   => 'boolean',
-            'catatan'              => 'nullable|string|max:500',
+        $validated = $request->validate([
+            'tanggal'             => 'required|date',
+            'kontrak_id'          => 'required|exists:kontrak_makan,id',
+            'jumlah_taruna_hadir' => 'required|integer|min:0',
+            'catatan_menu'        => 'nullable|string|max:500',
+            'menu_sesuai_jadwal'  => 'boolean',
+            'catatan'             => 'nullable|string|max:500',
+            // harga_porsi_snapshot TIDAK diambil dari request — selalu dari kontrak
         ]);
 
+        $kontrak = KontrakMakan::findOrFail($validated['kontrak_id']);
+        abort_unless($kontrak->status === 'aktif', 422, 'Kontrak tidak aktif.');
+
         // Cegah duplikasi tanggal + kontrak
-        if (PemesananHarian::where('tanggal', $data['tanggal'])->where('kontrak_id', $data['kontrak_id'])->exists()) {
+        if (PemesananHarian::where('tanggal', $validated['tanggal'])->where('kontrak_id', $kontrak->id)->exists()) {
             return back()->withErrors(['tanggal' => 'Pemesanan untuk tanggal ini sudah ada.'])->withInput();
         }
 
-        $data['menu_sesuai_jadwal'] = $request->boolean('menu_sesuai_jadwal', true);
-        $data['status']    = PemesananHarian::STATUS_DRAFT;
-        $data['created_by']= auth()->id();
-
-        $pemesanan = PemesananHarian::make($data);
+        $pemesanan = PemesananHarian::make([
+            'tanggal'             => $validated['tanggal'],
+            'kontrak_id'          => $kontrak->id,
+            'jumlah_taruna_hadir' => $validated['jumlah_taruna_hadir'],
+            'harga_porsi_snapshot'=> $kontrak->harga_porsi, // dari kontrak, bukan request
+            'catatan_menu'        => $validated['catatan_menu'] ?? null,
+            'menu_sesuai_jadwal'  => $request->boolean('menu_sesuai_jadwal', true),
+            'catatan'             => $validated['catatan'] ?? null,
+            'status'              => PemesananHarian::STATUS_DRAFT,
+            'created_by'          => auth()->id(),
+        ]);
         $pemesanan->hitungNilai();
         $pemesanan->save();
 
@@ -111,18 +120,21 @@ class PemesananHarianController extends Controller
             return back()->with('error', 'Pemesanan dengan status ini tidak dapat diedit.');
         }
 
-        $data = $request->validate([
-            'jumlah_taruna_hadir'  => 'required|integer|min:0',
-            'harga_porsi_snapshot' => 'required|numeric|min:0',
-            'catatan_menu'         => 'nullable|string|max:500',
-            'menu_sesuai_jadwal'   => 'boolean',
-            'catatan'              => 'nullable|string|max:500',
+        $validated = $request->validate([
+            'jumlah_taruna_hadir' => 'required|integer|min:0',
+            'catatan_menu'        => 'nullable|string|max:500',
+            'menu_sesuai_jadwal'  => 'boolean',
+            'catatan'             => 'nullable|string|max:500',
+            // harga_porsi_snapshot tidak diubah — tetap dari kontrak asal
         ]);
 
-        $data['menu_sesuai_jadwal'] = $request->boolean('menu_sesuai_jadwal', true);
-        $data['updated_by'] = auth()->id();
-
-        $pemesanan->fill($data);
+        $pemesanan->fill([
+            'jumlah_taruna_hadir' => $validated['jumlah_taruna_hadir'],
+            'catatan_menu'        => $validated['catatan_menu'] ?? null,
+            'menu_sesuai_jadwal'  => $request->boolean('menu_sesuai_jadwal', true),
+            'catatan'             => $validated['catatan'] ?? null,
+            'updated_by'          => auth()->id(),
+        ]);
         $pemesanan->hitungNilai();
         $pemesanan->save();
 

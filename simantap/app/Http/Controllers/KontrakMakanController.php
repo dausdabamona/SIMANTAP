@@ -109,6 +109,17 @@ class KontrakMakanController extends Controller
         return back()->with('success', 'Status kontrak diperbarui.');
     }
 
+    public function hargaPorsi(KontrakMakan $kontrak): \Illuminate\Http\JsonResponse
+    {
+        abort_unless($kontrak->status === 'aktif', 404);
+        return response()->json([
+            'harga_porsi'     => $kontrak->harga_porsi,
+            'nilai_kontrak'   => $kontrak->nilai_kontrak,
+            'tanggal_selesai' => $kontrak->tanggal_selesai->format('d/m/Y'),
+            'penyedia'        => $kontrak->penyedia?->nama ?? '-',
+        ]);
+    }
+
     // ── Helpers ────────────────────────────────────────────────
 
     private function validatedData(Request $request, ?int $ignoreId = null): array

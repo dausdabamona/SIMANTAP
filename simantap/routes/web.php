@@ -62,6 +62,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->parameters(['rekening' => 'rekening']);
     Route::resource('kontrak', \App\Http\Controllers\KontrakMakanController::class);
     Route::patch('kontrak/{kontrak}/status', [\App\Http\Controllers\KontrakMakanController::class, 'updateStatus'])->name('kontrak.status');
+    Route::get('api/kontrak/{kontrak}/harga-porsi', [\App\Http\Controllers\KontrakMakanController::class, 'hargaPorsi'])->name('api.kontrak.harga-porsi');
     Route::resource('sk-penerima',     \App\Http\Controllers\SkPenerimaController::class);
     Route::resource('jadwal-menu',     \App\Http\Controllers\JadwalMenuController::class);
 

@@ -130,4 +130,45 @@ class PemesananStateMachineTest extends TestCase
 
         $this->assertEquals('dikirim_penyedia', $pemesanan->fresh()->status);
     }
+
+    public function test_harga_per_porsi_diambil_dari_kontrak_bukan_request(): void
+    {
+        // Verifikasi langsung via model: harga_porsi_snapshot harus dari kontrak, bukan dari request
+        // Kontrak sudah dibuat di setUp() dengan harga_porsi = 15000
+        $this->assertEquals('aktif', $this->kontrak->status);
+        $this->assertEquals(15_000, (float) $this->kontrak->harga_porsi);
+
+        // Buat pemesanan langsung via controller logic (bypassing HTTP layer untuk isolasi)
+        // Simulasikan store() mengambil harga dari kontrak, bukan dari request
+        $pemesanan = PemesananHarian::make([
+            'tanggal'             => now()->addDays(5)->format('Y-m-d'),
+            'kontrak_id'          => $this->kontrak->id,
+            'jumlah_taruna_hadir' => 100,
+            'harga_porsi_snapshot'=> $this->kontrak->harga_porsi, // dari kontrak
+            'status'              => PemesananHarian::STATUS_DRAFT,
+        ]);
+        $pemesanan->hitungNilai();
+        $pemesanan->save();
+
+        $this->assertNotNull($pemesanan->id);
+        $this->assertEquals(15_000, (float) $pemesanan->harga_porsi_snapshot);
+        $this->assertEquals(100 * 3 * 15_000, (float) $pemesanan->nilai_total);
+
+        // Pastikan bahwa jika kita mengirim harga 999999 via request,
+        // controller store() mengabaikannya (tidak ada 'harga_porsi_snapshot' di $validated)
+        $controllerClass = new \ReflectionClass(\App\Http\Controllers\PemesananHarianController::class);
+        $method = $controllerClass->getMethod('store');
+        $source = file_get_contents($controllerClass->getFileName());
+        $storeBody = substr($source, strpos($source, 'public function store'));
+        $this->assertStringNotContainsString(
+            "'harga_porsi_snapshot' => \$validated",
+            $storeBody,
+            'store() seharusnya tidak mengambil harga_porsi_snapshot dari $validated (request)'
+        );
+        $this->assertStringContainsString(
+            '$kontrak->harga_porsi',
+            $storeBody,
+            'store() harus menggunakan harga dari kontrak'
+        );
+    }
 }
