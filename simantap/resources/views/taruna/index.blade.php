@@ -8,6 +8,19 @@
 
 @section('content')
 <div class="container-fluid px-4">
+    @include('components.alert')
+
+    @if(session('import_errors'))
+    <div class="alert alert-warning mt-2">
+        <strong>Detail baris yang dilewati:</strong>
+        <ul class="mb-0 mt-1">
+            @foreach(session('import_errors') as $err)
+            <li>{{ $err }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
     <div class="page-header d-flex align-items-center justify-content-between mb-4">
         <div>
             <h4 class="mb-1">Data Taruna</h4>

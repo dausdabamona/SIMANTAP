@@ -84,9 +84,37 @@ class TarunaController extends Controller
 
     public function import(Request $request): RedirectResponse
     {
-        $request->validate(['file' => 'required|mimes:xlsx,xls,csv|max:5120']);
-        Excel::import(new TarunaImport, $request->file('file'));
-        return redirect()->route('taruna.index')->with('success', 'Import data taruna berhasil.');
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
+        ]);
+
+        try {
+            $import = new TarunaImport;
+            Excel::import($import, $request->file('file'));
+
+            $failures = $import->failures();
+            if ($failures->isNotEmpty()) {
+                $errors = $failures->map(fn ($f) =>
+                    "Baris {$f->row()}: " . implode(', ', $f->errors())
+                )->take(10)->toArray();
+
+                return redirect()->route('taruna.index')
+                    ->with('warning', 'Import selesai dengan ' . $failures->count() . ' baris dilewati.')
+                    ->with('import_errors', $errors);
+            }
+
+            return redirect()->route('taruna.index')
+                ->with('success', 'Import data taruna berhasil.');
+
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $errors = collect($e->failures())->map(fn ($f) =>
+                "Baris {$f->row()}: " . implode(', ', $f->errors())
+            )->take(10)->toArray();
+
+            return redirect()->route('taruna.index')
+                ->with('error', 'Import gagal — ada data tidak valid.')
+                ->with('import_errors', $errors);
+        }
     }
 
     public function export(): \Symfony\Component\HttpFoundation\BinaryFileResponse
