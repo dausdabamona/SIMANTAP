@@ -109,10 +109,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // ── Laporan ──────────────────────────────────────────────
     Route::prefix('laporan')->name('laporan.')->group(function () {
-        Route::get('/taruna',    fn () => view('laporan.taruna'))->name('taruna');
-        Route::get('/rekap',     fn () => view('laporan.rekap'))->name('rekap');
-        Route::get('/pembayaran',fn () => view('laporan.pembayaran'))->name('pembayaran');
-        Route::get('/monitoring',fn () => view('laporan.monitoring'))->name('monitoring');
+        // Taruna
+        Route::get('/taruna',               [\App\Http\Controllers\LaporanController::class, 'taruna'])->name('taruna');
+        Route::get('/taruna/pdf',           [\App\Http\Controllers\LaporanController::class, 'tarunaPdf'])->name('taruna.pdf');
+        Route::get('/taruna/excel',         [\App\Http\Controllers\LaporanController::class, 'tarunaExcel'])->name('taruna.excel');
+        // Rekap Bulanan
+        Route::get('/rekap',                [\App\Http\Controllers\LaporanController::class, 'rekap'])->name('rekap');
+        Route::get('/rekap/pdf',            [\App\Http\Controllers\LaporanController::class, 'rekapPdf'])->name('rekap.pdf');
+        Route::get('/rekap/excel',          [\App\Http\Controllers\LaporanController::class, 'rekapExcel'])->name('rekap.excel');
+        // Pembayaran LS
+        Route::get('/pembayaran',           [\App\Http\Controllers\LaporanController::class, 'pembayaran'])->name('pembayaran');
+        Route::get('/pembayaran/pdf',       [\App\Http\Controllers\LaporanController::class, 'pembayaranPdf'])->name('pembayaran.pdf');
+        Route::get('/pembayaran/excel',     [\App\Http\Controllers\LaporanController::class, 'pembayaranExcel'])->name('pembayaran.excel');
+        // Monitoring Sesi
+        Route::get('/monitoring',           [\App\Http\Controllers\LaporanController::class, 'monitoring'])->name('monitoring');
+        Route::get('/monitoring/pdf',       [\App\Http\Controllers\LaporanController::class, 'monitoringPdf'])->name('monitoring.pdf');
+        Route::get('/monitoring/excel',     [\App\Http\Controllers\LaporanController::class, 'monitoringExcel'])->name('monitoring.excel');
+        // Money Bulanan
+        Route::get('/money-bulanan',        [\App\Http\Controllers\LaporanController::class, 'moneyBulanan'])->name('money-bulanan');
+        Route::get('/money-bulanan/pdf',    [\App\Http\Controllers\LaporanController::class, 'moneyBulananPdf'])->name('money-bulanan.pdf');
     });
 
     // ── Kegiatan Luar Kampus ─────────────────────────────────

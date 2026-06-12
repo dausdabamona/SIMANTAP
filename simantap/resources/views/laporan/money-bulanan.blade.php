@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', 'Laporan Pembayaran LS')
-@section('page_title', 'Laporan Pembayaran LS')
+@section('title', 'Ringkasan Keuangan Bulanan')
+@section('page_title', 'Ringkasan Keuangan Bulanan')
 
 @section('content')
 <div class="container-fluid">
@@ -9,50 +9,39 @@
     <div class="card mb-3">
         <div class="card-header"><strong>Filter</strong></div>
         <div class="card-body">
-            <form method="GET" action="{{ route('laporan.pembayaran') }}" class="row g-2">
+            <form method="GET" action="{{ route('laporan.money-bulanan') }}" class="row g-2">
                 <div class="col-md-3">
                     <label class="form-label">Tahun</label>
                     <input type="number" name="tahun" class="form-control" value="{{ $tahun }}" min="2020" max="2099">
                 </div>
                 <div class="col-md-3 d-flex align-items-end gap-2">
                     <button type="submit" class="btn btn-primary">Terapkan</button>
-                    <a href="{{ route('laporan.pembayaran') }}" class="btn btn-outline-secondary">Reset</a>
+                    <a href="{{ route('laporan.money-bulanan') }}" class="btn btn-outline-secondary">Reset</a>
                 </div>
             </form>
         </div>
     </div>
 
-    {{-- Pagu Card --}}
+    {{-- Pagu --}}
     @if ($pagu)
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="d-flex justify-content-between mb-1">
-                <strong>Pagu Anggaran {{ $tahun }}</strong>
-                <span>Realisasi: Rp {{ number_format($realisasi, 0, ',', '.') }} / Rp {{ number_format($pagu->nilai_pagu, 0, ',', '.') }}</span>
-            </div>
-            @php $pct = $pagu->nilai_pagu > 0 ? min(100, round($realisasi / $pagu->nilai_pagu * 100, 1)) : 0; @endphp
-            <div class="progress" style="height: 20px;">
-                <div class="progress-bar bg-success" style="width: {{ $pct }}%">{{ $pct }}%</div>
-            </div>
-        </div>
+    <div class="alert alert-info">
+        Pagu Anggaran {{ $tahun }}: <strong>Rp {{ number_format($pagu->nilai_pagu, 0, ',', '.') }}</strong>
+        (Akun: {{ $pagu->akun_belanja }})
     </div>
     @endif
 
     {{-- Table --}}
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <strong>Ringkasan Per Bulan Tahun {{ $tahun }}</strong>
-            <div class="d-flex gap-2">
-                <a href="{{ route('laporan.pembayaran.pdf', request()->query()) }}" class="btn btn-danger btn-sm">PDF</a>
-                <a href="{{ route('laporan.pembayaran.excel', request()->query()) }}" class="btn btn-success btn-sm">Excel</a>
-            </div>
+            <strong>Ringkasan Keuangan Tahun {{ $tahun }}</strong>
+            <a href="{{ route('laporan.money-bulanan.pdf', request()->query()) }}" class="btn btn-danger btn-sm">PDF</a>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-sm table-bordered table-hover mb-0">
                     <thead class="table-dark">
                         <tr>
-                            <th>Bulan</th><th>Jml Pengajuan</th><th>Total Nilai LS</th>
+                            <th>Bulan</th><th>Pengajuan</th><th>Nilai LS</th>
                             <th>Transfer Penyedia</th><th>Invoice Penyedia</th><th>Status BAMA</th>
                         </tr>
                     </thead>
@@ -64,19 +53,13 @@
                             <td>Rp {{ number_format($row['total_nilai_pengajuan'], 0, ',', '.') }}</td>
                             <td>Rp {{ number_format($row['total_transfer_penyedia'], 0, ',', '.') }}</td>
                             <td>Rp {{ number_format($row['total_invoice_penyedia'], 0, ',', '.') }}</td>
-                            <td>
-                                @if ($row['status_laporan_bama'])
-                                    <span class="badge bg-info">{{ $row['status_laporan_bama'] }}</span>
-                                @else
-                                    <span class="text-muted">-</span>
-                                @endif
-                            </td>
+                            <td>{{ $row['status_laporan_bama'] ?? '-' }}</td>
                         </tr>
                         @endforeach
                     </tbody>
                     <tfoot class="table-secondary fw-bold">
                         <tr>
-                            <td>Total</td>
+                            <td>Grand Total</td>
                             <td>{{ collect($rows)->sum('jumlah_pengajuan') }}</td>
                             <td>Rp {{ number_format(collect($rows)->sum('total_nilai_pengajuan'), 0, ',', '.') }}</td>
                             <td>Rp {{ number_format(collect($rows)->sum('total_transfer_penyedia'), 0, ',', '.') }}</td>
