@@ -58,6 +58,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('taruna/template',       [\App\Http\Controllers\TarunaController::class, 'template'])->name('taruna.template');
     Route::resource('rekening-taruna', \App\Http\Controllers\RekeningTarunaController::class);
     Route::resource('penyedia',        \App\Http\Controllers\PenyediaMakanController::class);
+    Route::resource('penyedia.rekening', \App\Http\Controllers\RekeningPenyediaController::class)
+        ->parameters(['rekening' => 'rekening']);
     Route::resource('kontrak', \App\Http\Controllers\KontrakMakanController::class);
     Route::patch('kontrak/{kontrak}/status', [\App\Http\Controllers\KontrakMakanController::class, 'updateStatus'])->name('kontrak.status');
     Route::resource('sk-penerima',     \App\Http\Controllers\SkPenerimaController::class);

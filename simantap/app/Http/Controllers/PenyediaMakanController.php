@@ -13,8 +13,10 @@ class PenyediaMakanController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            return DataTables::eloquent(PenyediaMakan::query())
+            return DataTables::eloquent(PenyediaMakan::with('rekeningDefault'))
                 ->addIndexColumn()
+                ->addColumn('bank', fn ($p) => $p->rekeningDefault?->bank ?? '-')
+                ->addColumn('nomor_rekening', fn ($p) => $p->rekeningDefault?->nomor_rekening ?? '-')
                 ->addColumn('kontrak_aktif', fn ($p) => $p->kontrakAktif()->count())
                 ->addColumn('action', fn ($p) => $this->actionButtons($p))
                 ->rawColumns(['action'])
@@ -38,7 +40,7 @@ class PenyediaMakanController extends Controller
 
     public function show(PenyediaMakan $penyedium): View
     {
-        $penyedium->load('kontrak');
+        $penyedium->load('kontrak', 'rekening');
         return view('penyedia.show', ['penyedia' => $penyedium]);
     }
 
@@ -49,7 +51,7 @@ class PenyediaMakanController extends Controller
 
     public function update(Request $request, PenyediaMakan $penyedium): RedirectResponse
     {
-        $penyedium->update($this->validatedData($request, $penyedium->id));
+        $penyedium->update($this->validatedData($request));
         return redirect()->route('penyedia.index')->with('success', 'Data penyedia berhasil diperbarui.');
     }
 
@@ -62,18 +64,14 @@ class PenyediaMakanController extends Controller
         return redirect()->route('penyedia.index')->with('success', 'Data penyedia berhasil dihapus.');
     }
 
-    private function validatedData(Request $request, ?int $ignoreId = null): array
+    private function validatedData(Request $request): array
     {
-        $rekeningRule = 'required|string|max:30|unique:penyedia_makan,nomor_rekening' . ($ignoreId ? ",$ignoreId" : '');
         return $request->validate([
-            'nama'                  => 'required|string|max:255',
-            'npwp'                  => 'nullable|string|max:20',
-            'alamat'                => 'nullable|string|max:500',
-            'telp'                  => 'nullable|string|max:20',
-            'email'                 => 'nullable|email|max:100',
-            'bank'                  => 'required|string|max:100',
-            'nomor_rekening'        => $rekeningRule,
-            'nama_pemilik_rekening' => 'required|string|max:255',
+            'nama'  => 'required|string|max:255',
+            'npwp'  => 'nullable|string|max:20',
+            'alamat'=> 'nullable|string|max:500',
+            'telp'  => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:100',
         ]);
     }
 

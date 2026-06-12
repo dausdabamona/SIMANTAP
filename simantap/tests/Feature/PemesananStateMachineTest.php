@@ -43,7 +43,6 @@ class PemesananStateMachineTest extends TestCase
 
         $penyedia = PenyediaMakan::create([
             'nama' => 'Penyedia Test', 'npwp' => '123', 'alamat' => 'Sorong',
-            'bank' => 'BNI', 'nomor_rekening' => '1111111', 'nama_pemilik_rekening' => 'Penyedia',
         ]);
 
         $this->kontrak = KontrakMakan::create([

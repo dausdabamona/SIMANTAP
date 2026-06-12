@@ -37,13 +37,40 @@
         </div>
         <div class="col-lg-6">
             <div class="card">
-                <div class="card-header"><i class="bi bi-bank me-2"></i>Rekening Bank</div>
-                <div class="card-body">
-                    <dl class="row mb-0">
-                        <dt class="col-5">Bank</dt><dd class="col-7">{{ $penyedia->bank }}</dd>
-                        <dt class="col-5">No. Rekening</dt><dd class="col-7 fw-semibold font-monospace">{{ $penyedia->nomor_rekening }}</dd>
-                        <dt class="col-5">Atas Nama</dt><dd class="col-7">{{ $penyedia->nama_pemilik_rekening }}</dd>
-                    </dl>
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <span><i class="bi bi-bank me-2"></i>Rekening Bank</span>
+                    @can('penyedia.edit')
+                    <a href="{{ route('penyedia.rekening.index', $penyedia) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil me-1"></i>Kelola
+                    </a>
+                    @endcan
+                </div>
+                <div class="card-body p-0">
+                    @forelse ($penyedia->rekening as $r)
+                    <div class="px-3 py-2 border-bottom">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            @if ($r->is_default)<span class="badge bg-success" style="font-size:.65rem">Default</span>@endif
+                            @if (!$r->is_active)<span class="badge bg-secondary" style="font-size:.65rem">Non-aktif</span>@endif
+                            @if ($r->label)<span class="text-muted small">{{ $r->label }}</span>@endif
+                        </div>
+                        <dl class="row mb-0 small">
+                            <dt class="col-5">Bank</dt><dd class="col-7">{{ $r->bank }}</dd>
+                            <dt class="col-5">No. Rekening</dt><dd class="col-7 fw-semibold font-monospace">{{ $r->nomor_rekening }}</dd>
+                            <dt class="col-5">Atas Nama</dt><dd class="col-7">{{ $r->nama_pemilik }}</dd>
+                            @if ($r->berlaku_mulai)
+                            <dt class="col-5">Berlaku</dt>
+                            <dd class="col-7">{{ $r->berlaku_mulai->format('d/m/Y') }}{{ $r->berlaku_sampai ? ' s/d '.$r->berlaku_sampai->format('d/m/Y') : '' }}</dd>
+                            @endif
+                        </dl>
+                    </div>
+                    @empty
+                    <div class="px-3 py-3 text-muted small">
+                        Belum ada rekening terdaftar.
+                        @can('penyedia.edit')
+                        <a href="{{ route('penyedia.rekening.create', $penyedia) }}">Tambah sekarang</a>
+                        @endcan
+                    </div>
+                    @endforelse
                 </div>
             </div>
         </div>

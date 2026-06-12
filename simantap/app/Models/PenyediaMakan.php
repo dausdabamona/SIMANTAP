@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PenyediaMakan extends Model
 {
@@ -21,9 +22,6 @@ class PenyediaMakan extends Model
         'alamat',
         'telp',
         'email',
-        'bank',
-        'nomor_rekening',
-        'nama_pemilik_rekening',
     ];
 
     // ---------- Relationships ----------
@@ -41,5 +39,25 @@ class PenyediaMakan extends Model
     public function kontrakAktif(): HasMany
     {
         return $this->hasMany(KontrakMakan::class, 'penyedia_id')->where('status', 'aktif');
+    }
+
+    public function rekening(): HasMany
+    {
+        return $this->hasMany(RekeningPenyedia::class, 'penyedia_id');
+    }
+
+    /** Rekening aktif yang ditandai default — dipakai untuk pembayaran baru */
+    public function rekeningDefault(): HasOne
+    {
+        return $this->hasOne(RekeningPenyedia::class, 'penyedia_id')
+            ->where('is_default', true)
+            ->where('is_active', true);
+    }
+
+    /** Semua rekening yang masih aktif */
+    public function rekeningAktif(): HasMany
+    {
+        return $this->hasMany(RekeningPenyedia::class, 'penyedia_id')
+            ->where('is_active', true);
     }
 }

@@ -49,8 +49,8 @@
                     <dl class="row mb-0">
                         <dt class="col-5">Nama</dt><dd class="col-7">{{ $penyedia->nama }}</dd>
                         <dt class="col-5">NPWP</dt><dd class="col-7">{{ $penyedia->npwp }}</dd>
-                        <dt class="col-5">Bank</dt><dd class="col-7">{{ $penyedia->bank }}</dd>
-                        <dt class="col-5">No. Rekening</dt><dd class="col-7">{{ $penyedia->nomor_rekening }}</dd>
+                        <dt class="col-5">Bank</dt><dd class="col-7">{{ $penyedia->rekeningDefault?->bank ?? '-' }}</dd>
+                        <dt class="col-5">No. Rekening</dt><dd class="col-7">{{ $penyedia->rekeningDefault?->nomor_rekening ?? '-' }}</dd>
                     </dl>
                     @else
                     <p class="text-muted mb-0">Data penyedia tidak ditemukan.</p>

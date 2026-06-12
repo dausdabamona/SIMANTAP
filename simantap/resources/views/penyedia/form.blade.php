@@ -52,26 +52,30 @@
                                 @error('alamat')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
 
-                            <div class="col-12"><hr><h6 class="text-muted">Data Rekening Bank</h6></div>
-
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Nama Bank <span class="text-danger">*</span></label>
-                                <input type="text" name="bank" class="form-control @error('bank') is-invalid @enderror"
-                                    value="{{ old('bank', $penyedia?->bank) }}" placeholder="BRI / BNI / Mandiri ..." required>
-                                @error('bank')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Nomor Rekening <span class="text-danger">*</span></label>
-                                <input type="text" name="nomor_rekening" class="form-control @error('nomor_rekening') is-invalid @enderror"
-                                    value="{{ old('nomor_rekening', $penyedia?->nomor_rekening) }}" required>
-                                @error('nomor_rekening')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
+                            @if ($penyedia)
                             <div class="col-12">
-                                <label class="form-label fw-semibold">Nama Pemilik Rekening <span class="text-danger">*</span></label>
-                                <input type="text" name="nama_pemilik_rekening" class="form-control @error('nama_pemilik_rekening') is-invalid @enderror"
-                                    value="{{ old('nama_pemilik_rekening', $penyedia?->nama_pemilik_rekening) }}" required>
-                                @error('nama_pemilik_rekening')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                <hr>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h6 class="text-muted mb-0">Rekening Bank</h6>
+                                    @can('penyedia.edit')
+                                    <a href="{{ route('penyedia.rekening.index', $penyedia) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-bank me-1"></i>Kelola Rekening
+                                    </a>
+                                    @endcan
+                                </div>
+                                @forelse ($penyedia->rekening as $r)
+                                <div class="d-flex align-items-center gap-2 mt-2 p-2 border rounded small">
+                                    @if ($r->is_default)<span class="badge bg-success">Default</span>@endif
+                                    @if (!$r->is_active)<span class="badge bg-secondary">Non-aktif</span>@endif
+                                    <span class="fw-semibold">{{ $r->bank }}</span>
+                                    <span class="font-monospace">{{ $r->nomor_rekening }}</span>
+                                    <span class="text-muted">a/n {{ $r->nama_pemilik }}</span>
+                                </div>
+                                @empty
+                                <p class="text-muted small mt-2 mb-0">Belum ada rekening. <a href="{{ route('penyedia.rekening.create', $penyedia) }}">Tambah sekarang</a>.</p>
+                                @endforelse
                             </div>
+                            @endif
                         </div>
 
                         <hr class="my-4">

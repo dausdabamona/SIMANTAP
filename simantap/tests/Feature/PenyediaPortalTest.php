@@ -29,13 +29,10 @@ class PenyediaPortalTest extends TestCase
         $this->userPenyedia->assignRole($rolePenyedia);
 
         $this->penyedia = PenyediaMakan::create([
-            'nama'                 => 'Penyedia Test',
-            'npwp'                 => '123456789',
-            'alamat'               => 'Sorong',
-            'bank'                 => 'BRI',
-            'nomor_rekening'       => '0001234567',
-            'nama_pemilik_rekening'=> 'Penyedia Test',
-            'user_id'              => $this->userPenyedia->id,
+            'nama'    => 'Penyedia Test',
+            'npwp'    => '123456789',
+            'alamat'  => 'Sorong',
+            'user_id' => $this->userPenyedia->id,
         ]);
 
         $this->kontrak = KontrakMakan::create([

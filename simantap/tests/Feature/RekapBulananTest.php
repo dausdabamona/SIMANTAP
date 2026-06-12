@@ -48,7 +48,6 @@ class RekapBulananTest extends TestCase
 
         $penyedia = PenyediaMakan::create([
             'nama' => 'Test', 'npwp' => '000', 'alamat' => 'X',
-            'bank' => 'BRI', 'nomor_rekening' => '0000000', 'nama_pemilik_rekening' => 'Test',
         ]);
 
         $this->kontrak = KontrakMakan::create([

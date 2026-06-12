@@ -54,7 +54,6 @@ class LaporanBamaTest extends TestCase
 
         $penyedia = PenyediaMakan::create([
             'nama' => 'Penyedia BAMA', 'npwp' => '111', 'alamat' => 'Sorong',
-            'bank' => 'BRI', 'nomor_rekening' => '1111111', 'nama_pemilik_rekening' => 'Penyedia',
         ]);
 
         $this->kontrak = KontrakMakan::create([
