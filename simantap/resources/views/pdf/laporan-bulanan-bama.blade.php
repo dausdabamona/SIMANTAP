@@ -180,8 +180,42 @@ ol.lampiran li { margin-bottom:3px; font-size:10pt; }
         </tr>
     </table>
 
+    <h3>B. Rekapitulasi Transfer ke Penyedia Makan</h3>
+    <table>
+        <tr><th>Bank Group</th><th>Rekening Senat</th><th>Total Nilai</th><th>Status</th></tr>
+        <tr>
+            <td><strong>BSI</strong></td>
+            <td>{{ $data['transferBSI']?->senatAccount?->nomor_rekening ?? '-' }}</td>
+            <td>Rp {{ number_format($data['transferBSI']?->total_nilai ?? 0, 0, ',', '.') }}</td>
+            <td>{{ $data['transferBSI'] ? $data['transferBSI']->status_label : '—' }}</td>
+        </tr>
+        <tr>
+            <td><strong>BNI</strong></td>
+            <td>{{ $data['transferBNI']?->senatAccount?->nomor_rekening ?? '-' }}</td>
+            <td>Rp {{ number_format($data['transferBNI']?->total_nilai ?? 0, 0, ',', '.') }}</td>
+            <td>{{ $data['transferBNI'] ? $data['transferBNI']->status_label : '—' }}</td>
+        </tr>
+        <tr>
+            <td colspan="2"><strong>Grand Total Transfer Penyedia</strong></td>
+            <td><strong>Rp {{ number_format($data['totalTransferPenyedia'], 0, ',', '.') }}</strong></td>
+            <td></td>
+        </tr>
+    </table>
+
+    @if ($data['invoicePenyedia'])
+    <table class="tbl-info" style="margin-top:6px;">
+        <tr><td class="label">Nomor Invoice</td><td>{{ $data['invoicePenyedia']->nomor_invoice ?? '-' }}</td></tr>
+        <tr><td class="label">Tanggal Invoice</td><td>{{ $data['invoicePenyedia']->tanggal_invoice?->format('d/m/Y') ?? '-' }}</td></tr>
+        <tr><td class="label">Nilai Invoice</td><td>Rp {{ number_format($data['invoicePenyedia']->total_nilai, 0, ',', '.') }}</td></tr>
+        <tr><td class="label">Status Invoice</td><td>{{ $data['invoicePenyedia']->status_label }}</td></tr>
+        <tr><td class="label">Penyedia</td><td>{{ $data['invoicePenyedia']->penyedia?->nama ?? '-' }}</td></tr>
+    </table>
+    @else
+    <p style="font-size:9pt; color:#666;">Invoice penyedia belum tersedia untuk periode ini.</p>
+    @endif
+
     @if ($data['pembayaranLuarKampus']->isNotEmpty())
-    <h3>B. Realisasi Penyaluran Luar Kampus</h3>
+    <h3>C. Realisasi Penyaluran Luar Kampus</h3>
     <table>
         <tr><th>No</th><th>Kegiatan</th><th>Tahap</th><th>Jml Peserta</th><th>Nilai SP2D</th><th>Status</th></tr>
         @foreach ($data['pembayaranLuarKampus'] as $i => $p)
@@ -196,6 +230,7 @@ ol.lampiran li { margin-bottom:3px; font-size:10pt; }
         @endforeach
     </table>
     @endif
+
 </div>
 <div class="page-break"></div>
 
@@ -232,6 +267,14 @@ ol.lampiran li { margin-bottom:3px; font-size:10pt; }
         <tr><td>Bantuan Dalam Kampus</td><td>Rp {{ number_format($data['totalDalamKampus'], 0, ',', '.') }}</td></tr>
         <tr><td>Bantuan Luar Kampus</td><td>Rp {{ number_format($data['totalLuarKampus'], 0, ',', '.') }}</td></tr>
         <tr><td><strong>Total</strong></td><td><strong>Rp {{ number_format($data['totalDalamKampus'] + $data['totalLuarKampus'], 0, ',', '.') }}</strong></td></tr>
+        <tr>
+            <td>Transfer ke Penyedia Makan (dikonfirmasi)</td>
+            <td>Rp {{ number_format($data['terbayarDalamKampus'], 0, ',', '.') }}</td>
+        </tr>
+        <tr>
+            <td>Selisih (Dalam Kampus − Terbayar Penyedia)</td>
+            <td>Rp {{ number_format($data['totalDalamKampus'] - $data['terbayarDalamKampus'], 0, ',', '.') }}</td>
+        </tr>
     </table>
     <h3>B. Realisasi Fisik</h3>
     <table>

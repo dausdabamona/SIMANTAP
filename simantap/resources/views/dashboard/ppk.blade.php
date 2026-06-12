@@ -19,6 +19,28 @@
     </div>
     @endif
 
+    @if ($invoicePendingVerifikasi > 0 || $transferPendingKonfirmasi > 0)
+    <div class="alert alert-warning d-flex align-items-center gap-3 mb-3" role="alert">
+        <i class="bi bi-bell-fill fs-5"></i>
+        <div class="d-flex gap-3 flex-wrap">
+            @if ($transferPendingKonfirmasi > 0)
+            <span>Transfer penyedia menunggu konfirmasi:
+                <a href="{{ route('transfer-penyedia.index') }}" class="fw-bold text-dark">
+                    <span class="badge bg-primary">{{ $transferPendingKonfirmasi }}</span>
+                </a>
+            </span>
+            @endif
+            @if ($invoicePendingVerifikasi > 0)
+            <span>Invoice penyedia menunggu verifikasi:
+                <a href="{{ route('invoice-penyedia.index') }}" class="fw-bold text-dark">
+                    <span class="badge bg-danger">{{ $invoicePendingVerifikasi }}</span>
+                </a>
+            </span>
+            @endif
+        </div>
+    </div>
+    @endif
+
     <div class="row g-3 mb-4">
         <div class="col-sm-6 col-xl-3">
             <div class="stat-card card border-0">

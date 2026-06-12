@@ -148,27 +148,40 @@
             </a>
         </div>
         <div class="card-body p-0">
-            @if ($invoices->isEmpty())
-            <p class="text-muted small p-3 mb-0">Belum ada invoice penyedia tahun {{ $tahun }}.</p>
-            @else
             <table class="table table-sm table-striped mb-0">
                 <thead class="table-light">
                     <tr>
                         <th>Periode</th>
                         <th>Penyedia</th>
                         <th>No. Invoice</th>
-                        <th>Total Nilai</th>
+                        <th>Total BSI</th>
+                        <th>Total BNI</th>
+                        <th>Grand Total</th>
+                        <th>Rekening Penyedia</th>
                         <th>Status</th>
                         @can('pembayaran.lpj')<th>Aksi</th>@endcan
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($invoices as $inv)
+                    @forelse ($invoices as $inv)
+                    @php
+                        $trBsi = $transferPenyediaSummary->flatten()->firstWhere(fn($t)
+                            => $t->bank_group === 'BSI'
+                            && $t->periode_bulan === $inv->periode_bulan
+                            && $t->periode_tahun === $inv->periode_tahun);
+                        $trBni = $transferPenyediaSummary->flatten()->firstWhere(fn($t)
+                            => $t->bank_group === 'BNI'
+                            && $t->periode_bulan === $inv->periode_bulan
+                            && $t->periode_tahun === $inv->periode_tahun);
+                    @endphp
                     <tr>
                         <td>{{ $inv->periode_bulan }}/{{ $inv->periode_tahun }}</td>
                         <td>{{ $inv->penyedia?->nama ?? '-' }}</td>
                         <td class="font-monospace small">{{ $inv->nomor_invoice ?? '-' }}</td>
-                        <td>Rp {{ number_format($inv->total_nilai, 0, ',', '.') }}</td>
+                        <td class="small">Rp {{ number_format($trBsi?->total_nilai ?? 0, 0, ',', '.') }}</td>
+                        <td class="small">Rp {{ number_format($trBni?->total_nilai ?? 0, 0, ',', '.') }}</td>
+                        <td class="small fw-semibold">Rp {{ number_format($inv->total_nilai, 0, ',', '.') }}</td>
+                        <td class="small">{{ $inv->penyedia?->rekeningDefault?->nomor_rekening ?? '-' }}</td>
                         <td><span class="badge bg-{{ $inv->status_badge_color }} small">{{ $inv->status_label }}</span></td>
                         @can('pembayaran.lpj')
                         <td>
@@ -188,10 +201,16 @@
                         </td>
                         @endcan
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td>{{ now()->month }}/{{ $tahun }}</td>
+                        <td colspan="6" class="text-muted small">Belum ada invoice</td>
+                        <td><span class="badge bg-secondary small">Menunggu</span></td>
+                        @can('pembayaran.lpj')<td>-</td>@endcan
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
-            @endif
         </div>
     </div>
 </div>

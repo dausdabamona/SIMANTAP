@@ -91,18 +91,20 @@ class DashboardController extends Controller
         $grafikRealisasi = $this->grafikRealisasi6Bulan();
 
         return view('dashboard.ppk', [
-            'antrianRekap'       => RekapBulanan::where('status', RekapBulanan::STATUS_DISETUJUI_WADIR)->count(),
-            'pembayaranAktif'    => PengajuanPembayaran::whereNotIn('status', ['selesai', 'dibatalkan'])->count(),
-            'pagu'               => $pagu,
-            'realisasi'          => $realisasi,
-            'persenPagu'         => $persenPagu,
-            'alertPagu'          => $persenPagu >= 80,
-            'grafikRealisasi'    => $grafikRealisasi,
-            'kegiatanLuarAktif'  => KegiatanLuarKampus::whereNotIn('status', [
+            'antrianRekap'               => RekapBulanan::where('status', RekapBulanan::STATUS_DISETUJUI_WADIR)->count(),
+            'pembayaranAktif'            => PengajuanPembayaran::whereNotIn('status', ['selesai', 'dibatalkan'])->count(),
+            'pagu'                       => $pagu,
+            'realisasi'                  => $realisasi,
+            'persenPagu'                 => $persenPagu,
+            'alertPagu'                  => $persenPagu >= 80,
+            'grafikRealisasi'            => $grafikRealisasi,
+            'kegiatanLuarAktif'          => KegiatanLuarKampus::whereNotIn('status', [
                 KegiatanLuarKampus::STATUS_SELESAI, KegiatanLuarKampus::STATUS_DIBATALKAN,
             ])->count(),
-            'pemesananHariIni'   => PemesananHarian::whereDate('tanggal', today())->first(),
-            'totalTaruna'        => Taruna::where('status_taruna', 'aktif')->count(),
+            'pemesananHariIni'           => PemesananHarian::whereDate('tanggal', today())->first(),
+            'totalTaruna'                => Taruna::where('status_taruna', 'aktif')->count(),
+            'invoicePendingVerifikasi'   => InvoicePenyedia::where('status', InvoicePenyedia::STATUS_DITERIMA)->count(),
+            'transferPendingKonfirmasi'  => TransferPenyedia::where('status', TransferPenyedia::STATUS_DITRANSFER)->count(),
         ]);
     }
 
@@ -111,14 +113,15 @@ class DashboardController extends Controller
         abort_unless(auth()->user()->hasRole('wadir_iii'), 403);
 
         return view('dashboard.wadir-iii', [
-            'rekapMenunggu'     => RekapBulanan::where('status', RekapBulanan::STATUS_DRAFT)->count(),
-            'kegiatanLuarAktif' => KegiatanLuarKampus::whereNotIn('status', [
+            'rekapMenunggu'         => RekapBulanan::where('status', RekapBulanan::STATUS_DRAFT)->count(),
+            'kegiatanLuarAktif'     => KegiatanLuarKampus::whereNotIn('status', [
                 KegiatanLuarKampus::STATUS_SELESAI, KegiatanLuarKampus::STATUS_DIBATALKAN,
             ])->with('kaprodi')->latest()->take(5)->get(),
-            'totalTaruna'       => Taruna::where('status_taruna', 'aktif')->count(),
+            'totalTaruna'           => Taruna::where('status_taruna', 'aktif')->count(),
             'totalKegiatanBulanIni' => KegiatanLuarKampus::whereMonth('tanggal_mulai', now()->month)
                 ->whereYear('tanggal_mulai', now()->year)
                 ->count(),
+            'transferMenungguWadir' => TransferPenyedia::where('status', TransferPenyedia::STATUS_MENUNGGU)->count(),
         ]);
     }
 

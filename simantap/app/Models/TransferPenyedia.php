@@ -138,7 +138,7 @@ class TransferPenyedia extends Model
             self::STATUS_MENUNGGU              => 'Menunggu Persetujuan',
             self::STATUS_DISETUJUI_WADIR       => 'Disetujui Wadir III',
             self::STATUS_DITRANSFER            => 'Sudah Ditransfer',
-            self::STATUS_DIKONFIRMASI_PENYEDIA => 'Dikonfirmasi Penyedia',
+            self::STATUS_DIKONFIRMASI_PENYEDIA => '✓ Dikonfirmasi Penyedia',
             default                            => ucfirst(str_replace('_', ' ', $this->status)),
         };
     }

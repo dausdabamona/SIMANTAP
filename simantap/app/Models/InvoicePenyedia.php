@@ -86,7 +86,7 @@ class InvoicePenyedia extends Model
         return match ($this->status) {
             self::STATUS_MENUNGGU     => 'Menunggu Upload',
             self::STATUS_DITERIMA     => 'Diterima',
-            self::STATUS_DIVERIFIKASI => 'Diverifikasi PPK',
+            self::STATUS_DIVERIFIKASI => '✓ Diverifikasi PPK',
             default                   => ucfirst(str_replace('_', ' ', $this->status)),
         };
     }

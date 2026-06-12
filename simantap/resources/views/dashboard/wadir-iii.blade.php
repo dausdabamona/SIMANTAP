@@ -94,6 +94,13 @@
                         <span class="badge bg-dark ms-1">{{ $rekapMenunggu }}</span>
                         @endif
                     </a>
+                    <a href="{{ route('transfer-penyedia.index') }}" class="btn btn-{{ $transferMenungguWadir > 0 ? 'success' : 'outline-success' }} btn-sm">
+                        <i class="bi bi-shop me-1"></i>
+                        Transfer ke Penyedia
+                        @if ($transferMenungguWadir > 0)
+                        <span class="badge bg-dark ms-1">{{ $transferMenungguWadir }}</span>
+                        @endif
+                    </a>
                     <a href="{{ route('kegiatan-luar.index') }}" class="btn btn-outline-info btn-sm">
                         <i class="bi bi-geo-alt me-1"></i>Kegiatan Luar Kampus
                     </a>

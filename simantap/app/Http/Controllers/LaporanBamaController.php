@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\InvoicePenyedia;
 use App\Models\KegiatanLuarKampus;
 use App\Models\KontrakMakan;
 use App\Models\LaporanBama;
@@ -11,6 +12,7 @@ use App\Models\PemesananHarian;
 use App\Models\PengajuanPembayaran;
 use App\Models\RekapBulanan;
 use App\Models\Taruna;
+use App\Models\TransferPenyedia;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -273,12 +275,38 @@ class LaporanBamaController extends Controller
         $totalDalamKampus = $rekapList->sum('nilai_bantuan');
         $totalLuarKampus  = $pembayaranLuarKampus->sum('nilai_disetujui');
 
+        // Transfer penyedia periode ini
+        $transferBSI = TransferPenyedia::where('periode_bulan', $bulan)
+            ->where('periode_tahun', $tahun)
+            ->where('bank_group', 'BSI')
+            ->first();
+
+        $transferBNI = TransferPenyedia::where('periode_bulan', $bulan)
+            ->where('periode_tahun', $tahun)
+            ->where('bank_group', 'BNI')
+            ->first();
+
+        $totalTransferPenyedia = ($transferBSI?->total_nilai ?? 0) + ($transferBNI?->total_nilai ?? 0);
+
+        $invoicePenyedia = InvoicePenyedia::where('periode_bulan', $bulan)
+            ->where('periode_tahun', $tahun)
+            ->with('penyedia')
+            ->first();
+
+        // Nilai yang sudah terbayar ke penyedia (transfer dikonfirmasi)
+        $terbayarDalamKampus = TransferPenyedia::where('periode_bulan', $bulan)
+            ->where('periode_tahun', $tahun)
+            ->where('status', TransferPenyedia::STATUS_DIKONFIRMASI_PENYEDIA)
+            ->sum('total_nilai');
+
         return compact(
             'kontrakAktif', 'paguTahun', 'tarunaEligible', 'tarunaTotal',
             'rekapList', 'pembayaranDalamKampus', 'pembayaranLuarKampus',
             'kegiatanLuar', 'pemesananBulanIni',
             'totalDalamKampus', 'totalLuarKampus',
-            'awalBulan', 'akhirBulan'
+            'awalBulan', 'akhirBulan',
+            'transferBSI', 'transferBNI', 'totalTransferPenyedia',
+            'invoicePenyedia', 'terbayarDalamKampus'
         );
     }
 
