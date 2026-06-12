@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\KehadiranMakan;
 use App\Models\KontrakMakan;
 use App\Models\PenerimaanMakan;
 use App\Models\RekapBulanan;
 use App\Models\RekapBulananApproval;
+use App\Models\SesiPenerimaanMakan;
 use App\Models\Taruna;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -55,22 +57,46 @@ class RekapBulananController extends Controller
         $tahun      = $data['tahun'];
         $kontrakId  = $data['kontrak_id'];
 
-        // Hitung total porsi per taruna dari penerimaan_makan
-        $rekapData = PenerimaanMakan::query()
-            ->whereMonth('tanggal', $bulan)
-            ->whereYear('tanggal', $tahun)
-            ->where('status_eligibilitas', 'dapat')
-            ->select('taruna_id', DB::raw('SUM(jumlah_porsi_diterima) as total_porsi'))
-            ->groupBy('taruna_id')
+        $kontrak = KontrakMakan::findOrFail($kontrakId);
+        $awal    = \Carbon\Carbon::create($tahun, $bulan, 1)->startOfMonth();
+        $akhir   = $awal->copy()->endOfMonth();
+
+        // Hitung per taruna dari kehadiran_makan (sesi yang sudah diterima)
+        $rekapData = KehadiranMakan::where('hadir', true)
+            ->whereHas('sesi', fn ($q) => $q
+                ->whereBetween('tanggal', [$awal, $akhir])
+                ->where('status', SesiPenerimaanMakan::STATUS_DITERIMA)
+            )
+            ->join('sesi_penerimaan_makans', 'kehadiran_makans.sesi_id', '=', 'sesi_penerimaan_makans.id')
+            ->select(
+                'kehadiran_makans.taruna_id',
+                DB::raw('COUNT(kehadiran_makans.id) as total_sesi_hadir'),
+                DB::raw('COUNT(DISTINCT DATE(sesi_penerimaan_makans.tanggal)) as hari_hadir')
+            )
+            ->groupBy('kehadiran_makans.taruna_id')
             ->get();
 
-        $kontrak = KontrakMakan::findOrFail($kontrakId);
+        // Fallback ke penerimaan_makan lama jika kehadiran kosong
+        if ($rekapData->isEmpty()) {
+            $rekapData = PenerimaanMakan::query()
+                ->whereMonth('tanggal', $bulan)
+                ->whereYear('tanggal', $tahun)
+                ->where('status_eligibilitas', 'dapat')
+                ->select(
+                    'taruna_id',
+                    DB::raw('SUM(jumlah_porsi_diterima) as total_sesi_hadir'),
+                    DB::raw('COUNT(DISTINCT tanggal) as hari_hadir')
+                )
+                ->groupBy('taruna_id')
+                ->get();
+        }
 
         DB::transaction(function () use ($rekapData, $bulan, $tahun, $kontrak) {
             foreach ($rekapData as $row) {
-                $nilaiPerPorsi = $kontrak->harga_porsi;
+                $totalSesi     = (int) $row->total_sesi_hadir;
+                $hariHadir     = (int) ($row->hari_hadir ?? 0);
+                $nilaiBantuan  = $totalSesi * $kontrak->harga_porsi;
 
-                // Only advance status if currently at disetujui_wadir (or draft for initial create)
                 $existing = RekapBulanan::where([
                     'taruna_id'    => $row->taruna_id,
                     'periode_bulan'=> $bulan,
@@ -90,8 +116,10 @@ class RekapBulananController extends Controller
                         'periode_tahun'=> $tahun,
                     ],
                     [
-                        'total_porsi'  => $row->total_porsi,
-                        'nilai_bantuan'=> $row->total_porsi * $nilaiPerPorsi,
+                        'total_porsi'  => $totalSesi,
+                        'total_sesi'   => $totalSesi,
+                        'hari_hadir'   => $hariHadir,
+                        'nilai_bantuan'=> $nilaiBantuan,
                         'kontrak_id'   => $kontrak->id,
                         'status'       => $newStatus,
                     ]

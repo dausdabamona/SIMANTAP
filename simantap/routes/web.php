@@ -73,6 +73,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('penerimaan',  \App\Http\Controllers\PenerimaanMakanController::class);
     Route::resource('monitoring',  \App\Http\Controllers\MonitoringController::class);
 
+    // ── Sesi Penerimaan Makan ────────────────────────────────
+    Route::get('sesi-penerimaan',                              [\App\Http\Controllers\SesiPenerimaanMakanController::class, 'index'])->name('sesi-penerimaan.index');
+    Route::get('sesi-penerimaan/{sesiPenerimaan}',             [\App\Http\Controllers\SesiPenerimaanMakanController::class, 'show'])->name('sesi-penerimaan.show');
+    Route::get('sesi-penerimaan/{sesiPenerimaan}/terima',      [\App\Http\Controllers\SesiPenerimaanMakanController::class, 'formTerima'])->name('sesi-penerimaan.form-terima');
+    Route::post('sesi-penerimaan/{sesiPenerimaan}/terima',     [\App\Http\Controllers\SesiPenerimaanMakanController::class, 'terimaMakanan'])->name('sesi-penerimaan.terima');
+    Route::post('sesi-penerimaan/{sesiPenerimaan}/redistribusi', [\App\Http\Controllers\SesiPenerimaanMakanController::class, 'simpanRedistribusi'])->name('sesi-penerimaan.simpan-redistribusi');
+
+    // ── Kehadiran Makan ──────────────────────────────────────
+    Route::get('kehadiran-makan/{sesiPenerimaan}',             [\App\Http\Controllers\KehadiranMakanController::class, 'index'])->name('kehadiran-makan.index');
+    Route::post('kehadiran-makan/{sesiPenerimaan}/centang',    [\App\Http\Controllers\KehadiranMakanController::class, 'simpanCentang'])->name('kehadiran-makan.centang');
+    Route::post('kehadiran-makan/{sesiPenerimaan}/fingerprint', [\App\Http\Controllers\KehadiranMakanController::class, 'importFingerprint'])->name('kehadiran-makan.fingerprint');
+    Route::patch('kehadiran-makan/{sesiPenerimaan}/taruna/{tarunaId}', [\App\Http\Controllers\KehadiranMakanController::class, 'updateSatu'])->name('kehadiran-makan.update-satu');
+
     // ── Rekap & Pembayaran ───────────────────────────────────
     Route::resource('rekap', \App\Http\Controllers\RekapBulananController::class);
     Route::post('rekap/hitung',                       [\App\Http\Controllers\RekapBulananController::class, 'hitungPeriode'])->name('rekap.hitung');

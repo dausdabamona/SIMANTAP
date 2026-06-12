@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\InvoicePenyedia;
 use App\Models\KegiatanLuarKampus;
+use App\Models\SesiPenerimaanMakan;
 use App\Models\KontrakMakan;
 use App\Models\LaporanBama;
 use App\Models\PaguAnggaran;
@@ -275,6 +276,18 @@ class LaporanBamaController extends Controller
         $totalDalamKampus = $rekapList->sum('nilai_bantuan');
         $totalLuarKampus  = $pembayaranLuarKampus->sum('nilai_disetujui');
 
+        // Rekonsiliasi harian dari sesi penerimaan
+        $rekonsiliasiHarian = SesiPenerimaanMakan::whereBetween('tanggal', [$awalBulan, $akhirBulan])
+            ->where('status', SesiPenerimaanMakan::STATUS_DITERIMA)
+            ->selectRaw('
+                SUM(porsi_dipesan) as total_dipesan,
+                SUM(porsi_diterima) as total_diterima,
+                SUM(porsi_dimakan_taruna) as total_taruna,
+                SUM(porsi_redistribusi) as total_redistribusi,
+                SUM(porsi_sisa) as total_sisa
+            ')
+            ->first();
+
         // Transfer penyedia periode ini
         $transferBSI = TransferPenyedia::where('periode_bulan', $bulan)
             ->where('periode_tahun', $tahun)
@@ -306,7 +319,8 @@ class LaporanBamaController extends Controller
             'totalDalamKampus', 'totalLuarKampus',
             'awalBulan', 'akhirBulan',
             'transferBSI', 'transferBNI', 'totalTransferPenyedia',
-            'invoicePenyedia', 'terbayarDalamKampus'
+            'invoicePenyedia', 'terbayarDalamKampus',
+            'rekonsiliasiHarian'
         );
     }
 

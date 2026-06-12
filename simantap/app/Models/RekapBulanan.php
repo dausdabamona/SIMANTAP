@@ -19,6 +19,8 @@ class RekapBulanan extends Model
         'periode_tahun',
         'taruna_id',
         'total_porsi',
+        'total_sesi',
+        'hari_hadir',
         'nilai_bantuan',
         'kontrak_id',
         'status',
@@ -28,6 +30,8 @@ class RekapBulanan extends Model
         'periode_bulan' => 'integer',
         'periode_tahun' => 'integer',
         'total_porsi'   => 'integer',
+        'total_sesi'    => 'integer',
+        'hari_hadir'    => 'integer',
         'nilai_bantuan' => 'decimal:2',
     ];
 

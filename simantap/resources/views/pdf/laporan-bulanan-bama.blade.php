@@ -180,7 +180,31 @@ ol.lampiran li { margin-bottom:3px; font-size:10pt; }
         </tr>
     </table>
 
-    <h3>B. Rekapitulasi Transfer ke Penyedia Makan</h3>
+    @if ($data['rekonsiliasiHarian'] && $data['rekonsiliasiHarian']->total_diterima > 0)
+    <h3>B. Rekonsiliasi Penerimaan Makanan Harian</h3>
+    @php $rek = $data['rekonsiliasiHarian']; @endphp
+    <table class="tbl-info">
+        <tr><td class="label">Porsi dipesan/diterima dari penyedia</td>
+            <td>{{ number_format($rek->total_dipesan ?? 0) }} porsi <em style="font-size:9pt;color:#666">(dasar tagihan KPPN)</em></td></tr>
+        <tr><td class="label">Dimakan taruna penerima bantuan</td>
+            <td>{{ number_format($rek->total_taruna ?? 0) }} porsi</td></tr>
+        <tr><td class="label">Redistribusi (petugas/taruna lain)</td>
+            <td>{{ number_format($rek->total_redistribusi ?? 0) }} porsi</td></tr>
+        <tr><td class="label">Sisa</td>
+            <td>{{ number_format($rek->total_sisa ?? 0) }} porsi</td></tr>
+        <tr style="border-top:2px solid #444;">
+            <td class="label">Rekonsiliasi (taruna + redistribusi + sisa)</td>
+            <td>
+                {{ number_format(($rek->total_taruna ?? 0) + ($rek->total_redistribusi ?? 0) + ($rek->total_sisa ?? 0)) }} porsi
+                @if ((int)$rek->total_dipesan === (int)(($rek->total_taruna ?? 0) + ($rek->total_redistribusi ?? 0) + ($rek->total_sisa ?? 0)))
+                    ✓
+                @endif
+            </td>
+        </tr>
+    </table>
+    @endif
+
+    <h3>C. Rekapitulasi Transfer ke Penyedia Makan</h3>
     <table>
         <tr><th>Bank Group</th><th>Rekening Senat</th><th>Total Nilai</th><th>Status</th></tr>
         <tr>
@@ -215,7 +239,7 @@ ol.lampiran li { margin-bottom:3px; font-size:10pt; }
     @endif
 
     @if ($data['pembayaranLuarKampus']->isNotEmpty())
-    <h3>C. Realisasi Penyaluran Luar Kampus</h3>
+    <h3>D. Realisasi Penyaluran Luar Kampus</h3>
     <table>
         <tr><th>No</th><th>Kegiatan</th><th>Tahap</th><th>Jml Peserta</th><th>Nilai SP2D</th><th>Status</th></tr>
         @foreach ($data['pembayaranLuarKampus'] as $i => $p)
