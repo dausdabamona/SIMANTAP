@@ -99,21 +99,21 @@ class PenyediaPortalTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_konfirmasi_transfer_mengubah_status_ke_selesai(): void
+    public function test_konfirmasi_transfer_mengubah_status_ke_lpj_ppk(): void
     {
         $pembayaran = PengajuanPembayaran::create([
             'nomor_pengajuan' => 'PAY/2025/06/001',
             'periode_bulan'   => 6,
             'periode_tahun'   => 2025,
             'total_nilai'     => 5_000_000,
-            'status'          => 'transfer_penyedia',
+            'status'          => 'debit_selesai',
         ]);
 
         $this->actingAs($this->userPenyedia)
             ->post(route('penyedia.pembayaran.konfirmasi', $pembayaran->id))
             ->assertRedirect();
 
-        $this->assertEquals('selesai', $pembayaran->fresh()->status);
+        $this->assertEquals('lpj_ppk', $pembayaran->fresh()->status);
     }
 
     public function test_user_tanpa_role_penyedia_ditolak(): void

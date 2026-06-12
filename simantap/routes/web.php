@@ -137,6 +137,29 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('transfer-monitor/{pembayaran}/mengetahui', [\App\Http\Controllers\TransferMonitorController::class, 'mengetahuiKppn'])->name('transfer-monitor.mengetahui');
     Route::post('transfer-monitor/{pembayaran}/setujui-penyedia', [\App\Http\Controllers\TransferMonitorController::class, 'setujuiTransferPenyedia'])->name('transfer-monitor.setujui-penyedia');
 
+    // ── Transfer Penyedia ────────────────────────────────────
+    Route::resource('transfer-penyedia', \App\Http\Controllers\TransferPenyediaController::class)
+        ->only(['index', 'show']);
+    Route::post('transfer-penyedia/{transferPenyedia}/setujui-wadir',
+        [\App\Http\Controllers\TransferPenyediaController::class, 'setujuiWadir'])
+        ->name('transfer-penyedia.setujui-wadir');
+    Route::post('transfer-penyedia/{transferPenyedia}/upload-bukti',
+        [\App\Http\Controllers\TransferPenyediaController::class, 'uploadBukti'])
+        ->name('transfer-penyedia.upload-bukti');
+    Route::post('transfer-penyedia/{transferPenyedia}/konfirmasi',
+        [\App\Http\Controllers\TransferPenyediaController::class, 'konfirmasi'])
+        ->name('transfer-penyedia.konfirmasi');
+
+    // ── Invoice Penyedia ─────────────────────────────────────
+    Route::resource('invoice-penyedia', \App\Http\Controllers\InvoicePenyediaController::class)
+        ->only(['index', 'show']);
+    Route::post('invoice-penyedia/{invoicePenyedia}/upload',
+        [\App\Http\Controllers\InvoicePenyediaController::class, 'upload'])
+        ->name('invoice-penyedia.upload');
+    Route::post('invoice-penyedia/{invoicePenyedia}/verifikasi',
+        [\App\Http\Controllers\InvoicePenyediaController::class, 'verifikasi'])
+        ->name('invoice-penyedia.verifikasi');
+
     // ── Portal Penyedia ──────────────────────────────────────
     Route::middleware('role:penyedia')->prefix('portal-penyedia')->name('penyedia.')->group(function () {
         Route::get('/pesanan',                    [\App\Http\Controllers\PenyediaController::class, 'pesanan'])->name('pesanan');

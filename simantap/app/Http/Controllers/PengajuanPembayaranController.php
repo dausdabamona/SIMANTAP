@@ -6,6 +6,7 @@ use App\Models\PengajuanPembayaran;
 use App\Models\RekapBulanan;
 use App\Models\SenatAccount;
 use App\Models\Taruna;
+use App\Models\TransferPenyedia;
 use App\Models\WorkflowPembayaran;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -233,10 +234,9 @@ class PengajuanPembayaranController extends Controller
             'setujui_kpa'         => 'pembayaran.setujui_kpa',
             'permohonan_kppn'     => 'pembayaran.permohonan_kppn',
             'input_sp2d'          => 'pembayaran.input_sp2d',
-            'transfer_kppn'       => 'pembayaran.upload',
-            'debit_bank'          => 'pembayaran.upload',
-            'transfer_penyedia'   => 'pembayaran.upload',
-            'konfirmasi_penyedia' => 'pembayaran.konfirmasi',
+            'transfer_kppn'   => 'pembayaran.upload',
+            'debit_bank'      => 'pembayaran.upload',
+            'debit_selesai'   => 'pembayaran.debit_selesai',
             'lpj_ppk'             => 'pembayaran.lpj',
             'lpj_kpa'             => 'pembayaran.lpj',
             'selesai'             => 'pembayaran.selesai',
@@ -246,18 +246,17 @@ class PengajuanPembayaranController extends Controller
         }
 
         [$statusBaru, $fieldUpdate] = match ($aksi) {
-            'proses_ppk'          => [PengajuanPembayaran::STATUS_DIPROSES_PPK, []],
-            'setujui_kpa'         => [PengajuanPembayaran::STATUS_DISETUJUI_KPA, []],
-            'permohonan_kppn'     => [PengajuanPembayaran::STATUS_PERMOHONAN_KPPN, []],
-            'input_sp2d'          => $this->handleSp2d($request, $pembayaran),
-            'transfer_kppn'       => $this->handleUpload($request, $pembayaran, 'bukti_transfer_kppn', PengajuanPembayaran::STATUS_TRANSFER_KPPN),
-            'debit_bank'          => $this->handleUpload($request, $pembayaran, 'bukti_debit_bank', PengajuanPembayaran::STATUS_DEBIT_BANK),
-            'transfer_penyedia'   => $this->handleUpload($request, $pembayaran, 'bukti_transfer_penyedia', PengajuanPembayaran::STATUS_TRANSFER_PENYEDIA),
-            'konfirmasi_penyedia' => [PengajuanPembayaran::STATUS_KONFIRMASI_PENYEDIA, []],
-            'lpj_ppk'             => [PengajuanPembayaran::STATUS_LPJ_PPK, []],
-            'lpj_kpa'             => [PengajuanPembayaran::STATUS_LPJ_KPA, []],
-            'selesai'             => [PengajuanPembayaran::STATUS_SELESAI, []],
-            default               => throw new \InvalidArgumentException("Aksi tidak dikenal: $aksi"),
+            'proses_ppk'      => [PengajuanPembayaran::STATUS_DIPROSES_PPK, []],
+            'setujui_kpa'     => [PengajuanPembayaran::STATUS_DISETUJUI_KPA, []],
+            'permohonan_kppn' => [PengajuanPembayaran::STATUS_PERMOHONAN_KPPN, []],
+            'input_sp2d'      => $this->handleSp2d($request, $pembayaran),
+            'transfer_kppn'   => $this->handleUpload($request, $pembayaran, 'bukti_transfer_kppn', PengajuanPembayaran::STATUS_TRANSFER_KPPN),
+            'debit_bank'      => $this->handleUpload($request, $pembayaran, 'bukti_debit_bank', PengajuanPembayaran::STATUS_DEBIT_BANK),
+            'debit_selesai'   => [PengajuanPembayaran::STATUS_DEBIT_SELESAI, []],
+            'lpj_ppk'         => [PengajuanPembayaran::STATUS_LPJ_PPK, []],
+            'lpj_kpa'         => [PengajuanPembayaran::STATUS_LPJ_KPA, []],
+            'selesai'         => [PengajuanPembayaran::STATUS_SELESAI, []],
+            default           => throw new \InvalidArgumentException("Aksi tidak dikenal: $aksi"),
         };
 
         DB::transaction(function () use ($pembayaran, $statusNow, $statusBaru, $fieldUpdate, $request) {
@@ -273,6 +272,27 @@ class PengajuanPembayaranController extends Controller
                 'created_at'   => now(),
             ]);
         });
+
+        // Saat SPM berstatus debit_selesai, cek apakah semua SPM bank_group itu sudah selesai
+        if ($statusBaru === PengajuanPembayaran::STATUS_DEBIT_SELESAI && $pembayaran->bank_group) {
+            $belumSelesai = PengajuanPembayaran::where([
+                'periode_bulan' => $pembayaran->periode_bulan,
+                'periode_tahun' => $pembayaran->periode_tahun,
+                'bank_group'    => $pembayaran->bank_group,
+            ])->where('status', '!=', PengajuanPembayaran::STATUS_DEBIT_SELESAI)->count();
+
+            if ($belumSelesai === 0) {
+                try {
+                    TransferPenyedia::generateUntukPeriode(
+                        $pembayaran->periode_bulan,
+                        $pembayaran->periode_tahun,
+                        $pembayaran->bank_group
+                    );
+                } catch (\Throwable) {
+                    // Rekening penyedia belum ada — abaikan, bisa di-generate manual
+                }
+            }
+        }
 
         return back()->with('success', 'Status pembayaran berhasil diperbarui.');
     }
@@ -315,9 +335,8 @@ class PengajuanPembayaranController extends Controller
             PengajuanPembayaran::STATUS_PERMOHONAN_KPPN     => 'warning',
             PengajuanPembayaran::STATUS_SP2D                => 'info',
             PengajuanPembayaran::STATUS_TRANSFER_KPPN       => 'primary',
-            PengajuanPembayaran::STATUS_DEBIT_BANK          => 'warning',
-            PengajuanPembayaran::STATUS_TRANSFER_PENYEDIA   => 'success',
-            PengajuanPembayaran::STATUS_KONFIRMASI_PENYEDIA => 'success',
+            PengajuanPembayaran::STATUS_DEBIT_BANK      => 'warning',
+            PengajuanPembayaran::STATUS_DEBIT_SELESAI   => 'success',
             PengajuanPembayaran::STATUS_LPJ_PPK             => 'info',
             PengajuanPembayaran::STATUS_LPJ_KPA             => 'info',
             PengajuanPembayaran::STATUS_SELESAI             => 'dark',

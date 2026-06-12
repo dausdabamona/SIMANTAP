@@ -10,8 +10,10 @@ use App\Models\PemblokiranUangMakan;
 use App\Models\PemesananHarian;
 use App\Models\PenerimaanMakan;
 use App\Models\PengajuanPembayaran;
+use App\Models\InvoicePenyedia;
 use App\Models\PenyediaMakan;
 use App\Models\RekapBulanan;
+use App\Models\TransferPenyedia;
 use App\Models\Taruna;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -186,13 +188,30 @@ class DashboardController extends Controller
 
         $penyedia = PenyediaMakan::where('user_id', auth()->id())->first();
 
+        $bulan = now()->month;
+        $tahun = now()->year;
+
+        $transferBulanIni = TransferPenyedia::where([
+            'periode_bulan' => $bulan,
+            'periode_tahun' => $tahun,
+        ])->get()->keyBy('bank_group');
+
+        $invoiceBulanIni = InvoicePenyedia::where([
+            'periode_bulan' => $bulan,
+            'periode_tahun' => $tahun,
+        ])->first();
+
         return view('dashboard.penyedia', [
-            'penyedia'         => $penyedia,
-            'pesananHariIni'   => PemesananHarian::whereDate('tanggal', today())->first(),
-            'riwayatPesanan'   => PemesananHarian::whereIn('status', ['dikirim_penyedia', 'selesai'])
+            'penyedia'           => $penyedia,
+            'pesananHariIni'     => PemesananHarian::whereDate('tanggal', today())->first(),
+            'riwayatPesanan'     => PemesananHarian::whereIn('status', ['dikirim_penyedia', 'selesai'])
                 ->latest()
                 ->take(10)
                 ->get(),
+            'transferBulanIni'   => $transferBulanIni,
+            'invoiceBulanIni'    => $invoiceBulanIni,
+            'bulan'              => $bulan,
+            'tahun'              => $tahun,
         ]);
     }
 

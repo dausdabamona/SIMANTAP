@@ -90,9 +90,9 @@
                     'permohonan_kppn'     => [['aksi' => 'input_sp2d', 'label' => 'Input SP2D', 'color' => 'info', 'perm' => 'pembayaran.input_sp2d', 'form' => 'sp2d']],
                     'sp2d'                => [['aksi' => 'transfer_kppn', 'label' => 'Upload Bukti Transfer KPPN', 'color' => 'primary', 'perm' => 'pembayaran.upload', 'form' => 'upload', 'field' => 'bukti_transfer_kppn']],
                     'transfer_kppn'       => [['aksi' => 'debit_bank', 'label' => 'Upload Bukti Debit Bank', 'color' => 'warning', 'perm' => 'pembayaran.upload', 'form' => 'upload', 'field' => 'bukti_debit_bank']],
-                    'debit_bank'          => [['aksi' => 'transfer_penyedia', 'label' => 'Upload Bukti Transfer Penyedia', 'color' => 'success', 'perm' => 'pembayaran.upload', 'form' => 'upload', 'field' => 'bukti_transfer_penyedia']],
-                    'transfer_penyedia'   => [['aksi' => 'konfirmasi_penyedia', 'label' => 'Konfirmasi Penyedia', 'color' => 'success', 'perm' => 'pembayaran.konfirmasi']],
-                    'konfirmasi_penyedia' => [['aksi' => 'lpj_ppk', 'label' => 'LPJ PPK', 'color' => 'info', 'perm' => 'pembayaran.lpj']],
+                    'debit_bank'     => [['aksi' => 'debit_selesai', 'label' => 'Tandai Debit Selesai', 'color' => 'success', 'perm' => 'pembayaran.debit_selesai']],
+                    'debit_selesai'  => [],
+                    'lpj_ppk'        => [['aksi' => 'lpj_ppk', 'label' => 'LPJ PPK', 'color' => 'info', 'perm' => 'pembayaran.lpj']],
                     'lpj_ppk'             => [['aksi' => 'lpj_kpa', 'label' => 'LPJ KPA', 'color' => 'info', 'perm' => 'pembayaran.lpj']],
                     'lpj_kpa'             => [['aksi' => 'selesai', 'label' => 'Tandai Selesai', 'color' => 'dark', 'perm' => 'pembayaran.selesai']],
                     default               => [],
@@ -149,10 +149,8 @@
                 <div class="card-header"><i class="bi bi-paperclip me-2"></i>Dokumen Bukti</div>
                 <div class="card-body">
                     @foreach ([
-                        'invoice_penyedia'       => 'Invoice Penyedia',
-                        'bukti_transfer_kppn'    => 'Bukti Transfer KPPN',
-                        'bukti_debit_bank'        => 'Bukti Debit Bank',
-                        'bukti_transfer_penyedia' => 'Bukti Transfer Penyedia',
+                        'bukti_transfer_kppn' => 'Bukti Transfer KPPN',
+                        'bukti_debit_bank'    => 'Bukti Debit Bank',
                     ] as $field => $label)
                     <div class="d-flex align-items-center justify-content-between mb-2 small">
                         <span>{{ $label }}</span>

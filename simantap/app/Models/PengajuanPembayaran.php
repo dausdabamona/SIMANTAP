@@ -51,8 +51,7 @@ class PengajuanPembayaran extends Model
     const STATUS_SP2D                = 'sp2d';
     const STATUS_TRANSFER_KPPN       = 'transfer_kppn';
     const STATUS_DEBIT_BANK          = 'debit_bank';
-    const STATUS_TRANSFER_PENYEDIA   = 'transfer_penyedia';
-    const STATUS_KONFIRMASI_PENYEDIA = 'konfirmasi_penyedia';
+    const STATUS_DEBIT_SELESAI       = 'debit_selesai';
     const STATUS_LPJ_PPK             = 'lpj_ppk';
     const STATUS_LPJ_KPA             = 'lpj_kpa';
     const STATUS_SELESAI             = 'selesai';
@@ -98,8 +97,7 @@ class PengajuanPembayaran extends Model
             self::STATUS_SP2D                => 'SP2D Terbit',
             self::STATUS_TRANSFER_KPPN       => 'Transfer dari KPPN',
             self::STATUS_DEBIT_BANK          => 'Debit Bank',
-            self::STATUS_TRANSFER_PENYEDIA   => 'Transfer ke Penyedia',
-            self::STATUS_KONFIRMASI_PENYEDIA => 'Konfirmasi Penyedia',
+            self::STATUS_DEBIT_SELESAI       => 'Debit Selesai',
             self::STATUS_LPJ_PPK             => 'LPJ PPK',
             self::STATUS_LPJ_KPA             => 'LPJ KPA',
             self::STATUS_SELESAI             => 'Selesai',

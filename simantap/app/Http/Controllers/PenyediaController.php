@@ -45,7 +45,7 @@ class PenyediaController extends Controller
         $penyedia = $this->penyediaLogin();
 
         // Invoice = pengajuan pembayaran terkait (SP2D terbit+)
-        $invoiceList = PengajuanPembayaran::whereIn('status', ['sp2d', 'transfer_kppn', 'debit_bank', 'transfer_penyedia', 'selesai'])
+        $invoiceList = PengajuanPembayaran::whereIn('status', ['sp2d', 'transfer_kppn', 'debit_bank', 'debit_selesai', 'lpj_ppk', 'lpj_kpa', 'selesai'])
             ->latest()
             ->paginate(20);
 
@@ -82,9 +82,9 @@ class PenyediaController extends Controller
         $this->penyediaLogin();
 
         $pembayaran = PengajuanPembayaran::findOrFail($id);
-        abort_unless($pembayaran->status === 'transfer_penyedia', 403);
+        abort_unless($pembayaran->status === 'debit_selesai', 403);
 
-        $pembayaran->update(['status' => 'selesai']);
+        $pembayaran->update(['status' => 'lpj_ppk']);
         return back()->with('success', 'Transfer dikonfirmasi oleh penyedia.');
     }
 }

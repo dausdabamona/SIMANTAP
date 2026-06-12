@@ -20,12 +20,12 @@ class TransferMonitorTest extends TestCase
     {
         parent::setUp();
 
-        foreach (['rekap.view', 'pembayaran.view', 'transfer.senat.mengetahui', 'transfer.penyedia.setujui'] as $p) {
+        foreach (['rekap.view', 'pembayaran.view', 'transfer.senat.mengetahui'] as $p) {
             Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']);
         }
 
         $roleWadir = Role::firstOrCreate(['name' => 'wadir_iii', 'guard_name' => 'web']);
-        $roleWadir->givePermissionTo(['rekap.view', 'pembayaran.view', 'transfer.senat.mengetahui', 'transfer.penyedia.setujui']);
+        $roleWadir->givePermissionTo(['rekap.view', 'pembayaran.view', 'transfer.senat.mengetahui']);
 
         $rolePpk = Role::firstOrCreate(['name' => 'ppk', 'guard_name' => 'web']);
         $rolePpk->givePermissionTo(['rekap.view', 'pembayaran.view']);
@@ -65,32 +65,28 @@ class TransferMonitorTest extends TestCase
             ->assertRedirect();
     }
 
-    public function test_setujui_transfer_penyedia_mengubah_status_ke_selesai(): void
+    public function test_setujui_transfer_penyedia_redirect_ke_halaman_baru(): void
     {
-        $p = $this->makePembayaran('transfer_penyedia');
+        // Legacy endpoint sekarang redirect ke transfer-penyedia.index
+        $p = $this->makePembayaran('debit_selesai');
 
         $this->actingAs($this->wadir)
             ->post(route('transfer-monitor.setujui-penyedia', $p))
-            ->assertRedirect();
-
-        $this->assertEquals('selesai', $p->fresh()->status);
+            ->assertRedirect(route('transfer-penyedia.index'));
     }
 
-    public function test_ppk_tidak_bisa_setujui_transfer_penyedia(): void
+    public function test_ppk_dapat_akses_transfer_monitor(): void
     {
-        $p = $this->makePembayaran('transfer_penyedia');
-
         $this->actingAs($this->ppk)
-            ->post(route('transfer-monitor.setujui-penyedia', $p))
-            ->assertForbidden();
+            ->get(route('transfer-monitor.index'))
+            ->assertOk();
     }
 
-    public function test_setujui_transfer_gagal_jika_status_bukan_transfer_penyedia(): void
+    public function test_user_tanpa_izin_tidak_bisa_akses_transfer_monitor(): void
     {
-        $p = $this->makePembayaran('sp2d');
-
-        $this->actingAs($this->wadir)
-            ->post(route('transfer-monitor.setujui-penyedia', $p))
+        $guest = User::factory()->create();
+        $this->actingAs($guest)
+            ->get(route('transfer-monitor.index'))
             ->assertForbidden();
     }
 }
