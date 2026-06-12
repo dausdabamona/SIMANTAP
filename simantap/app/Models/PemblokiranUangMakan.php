@@ -15,11 +15,12 @@ class PemblokiranUangMakan extends Model
 
     protected $fillable = [
         'periode_bulan', 'periode_tahun', 'taruna_id',
-        // Koreksi #4: senat_account_id (target debit otomatis bank)
+        'bank_group',
+        'jumlah_taruna_terdampak',
+        'total_nilai_diblokir',
         'senat_account_id',
         'nilai_bantuan', 'status',
         'nomor_surat_pemblokiran', 'tanggal_surat', 'file_surat_pemblokiran',
-        // Koreksi #4: bukti_debit_bank + tanggal_debit + nilai_didebit
         'bukti_debit_bank', 'tanggal_debit', 'nilai_didebit',
         'catatan',
         'diusulkan_oleh', 'diusulkan_at',
@@ -28,8 +29,9 @@ class PemblokiranUangMakan extends Model
     ];
 
     protected $casts = [
-        'nilai_bantuan'  => 'decimal:2',
-        'nilai_didebit'  => 'decimal:2',
+        'nilai_bantuan'          => 'decimal:2',
+        'nilai_didebit'          => 'decimal:2',
+        'total_nilai_diblokir'   => 'decimal:2',
         'tanggal_surat'  => 'date',
         'tanggal_debit'  => 'datetime',
         'diusulkan_at'   => 'datetime',

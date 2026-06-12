@@ -30,6 +30,7 @@
                             <th>#</th>
                             <th>No. Pengajuan</th>
                             <th>Periode</th>
+                            <th>Kelas / Bank</th>
                             <th>Total Taruna</th>
                             <th>Total Nilai</th>
                             <th>No. SP2D</th>
@@ -55,6 +56,7 @@ $('#pembayaranTable').DataTable({
         { data: 'DT_RowIndex', orderable: false, searchable: false },
         { data: 'nomor_pengajuan' },
         { data: 'periode' },
+        { data: 'kelas_bank', orderable: false },
         { data: 'total_taruna' },
         { data: 'nilai_fmt', orderable: false },
         { data: 'nomor_sp2d' },

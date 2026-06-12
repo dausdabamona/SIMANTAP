@@ -16,6 +16,8 @@ class SenatAccount extends Model
     protected $fillable = [
         'nama_akun',
         'bank',
+        'bank_group',
+        'untuk_tingkat',
         'nomor_rekening',
         'nama_pemilik',
         'is_aktif',
@@ -30,7 +32,17 @@ class SenatAccount extends Model
 
     public function pemblokiran(): HasMany
     {
-        return $this->hasMany(PemblokiranUangMakan::class, 'target_rekening_id');
+        return $this->hasMany(PemblokiranUangMakan::class, 'senat_account_id');
+    }
+
+    public function rekeningTaruna(): HasMany
+    {
+        return $this->hasMany(RekeningTaruna::class, 'senat_account_id');
+    }
+
+    public function pengajuanPembayaran(): HasMany
+    {
+        return $this->hasMany(PengajuanPembayaran::class, 'rekening_senat_id');
     }
 
     // ---------- Scopes ----------
@@ -38,5 +50,24 @@ class SenatAccount extends Model
     public function scopeAktif($query)
     {
         return $query->where('is_aktif', true);
+    }
+
+    /** Satu rekening aktif per bank_group */
+    public function scopeAktifPerGroup($query, string $bankGroup)
+    {
+        return $query->where('bank_group', $bankGroup)->where('is_aktif', true);
+    }
+
+    // ---------- Helpers ----------
+
+    /** Deteksi bank_group dari nama bank */
+    public static function detectBankGroup(string $bank): string
+    {
+        $upper = strtoupper($bank);
+        return str_contains($upper, 'BSI') ? 'BSI'
+            : (str_contains($upper, 'BNI') ? 'BNI'
+            : (str_contains($upper, 'MANDIRI') ? 'MANDIRI'
+            : (str_contains($upper, 'BRI') ? 'BRI'
+            : 'LAINNYA')));
     }
 }

@@ -28,11 +28,11 @@
                     <thead class="table-light">
                         <tr>
                             <th>#</th>
-                            <th>NIT</th>
-                            <th>Nama Taruna</th>
                             <th>Periode</th>
-                            <th>Nilai Bantuan</th>
-                            <th>Nilai Didebit</th>
+                            <th>Bank</th>
+                            <th>Rekening Senat</th>
+                            <th>Jml Taruna</th>
+                            <th>Total Diblokir</th>
                             <th>Status</th>
                             <th>Aksi</th>
                         </tr>
@@ -53,11 +53,11 @@ $('#pemblokiranTable').DataTable({
     ajax: '{{ route('pemblokiran.index') }}',
     columns: [
         { data: 'DT_RowIndex', orderable: false, searchable: false },
-        { data: 'nit' },
-        { data: 'nama_taruna' },
         { data: 'periode_bulan' },
+        { data: 'bank_group_badge', orderable: false, searchable: false },
+        { data: 'senat_account.nama_akun', defaultContent: '-' },
+        { data: 'jumlah_taruna_terdampak', defaultContent: '-' },
         { data: 'nilai_fmt', orderable: false },
-        { data: 'nilai_didebit' },
         { data: 'status_badge', orderable: false, searchable: false },
         { data: 'action', orderable: false, searchable: false },
     ],

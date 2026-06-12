@@ -83,6 +83,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('pemblokiran/{pemblokiranUangMakan}/proses', [\App\Http\Controllers\PemblokiranController::class, 'proses'])->name('pemblokiran.proses');
     Route::resource('pembayaran', \App\Http\Controllers\PengajuanPembayaranController::class);
     Route::post('pembayaran/{pembayaran}/transisi', [\App\Http\Controllers\PengajuanPembayaranController::class, 'transisi'])->name('pembayaran.transisi');
+    Route::get('pembayaran-kelas-tersedia', [\App\Http\Controllers\PengajuanPembayaranController::class, 'kelasTersedia'])->name('pembayaran.kelas-tersedia');
 
     // ── PDF Generation ──────────────────────────────────────
     Route::prefix('pdf')->name('pdf.')->group(function () {

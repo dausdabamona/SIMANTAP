@@ -15,7 +15,13 @@
     <div class="row">
         <div class="col-lg-7">
             <div class="card">
-                <div class="card-header"><i class="bi bi-lock me-2"></i>Data Pemblokiran</div>
+                <div class="card-header"><i class="bi bi-lock me-2"></i>
+                    @if ($pemblokiran)
+                        Edit Pemblokiran — <span class="badge bg-info text-dark">{{ $pemblokiran->bank_group }}</span> {{ $pemblokiran->periode_label }}
+                    @else
+                        Pilih Periode Pemblokiran
+                    @endif
+                </div>
                 <div class="card-body">
                     <form method="POST"
                         action="{{ $pemblokiran ? route('pemblokiran.update', $pemblokiran) : route('pemblokiran.store') }}"
@@ -23,54 +29,42 @@
                         @csrf
                         @if ($pemblokiran) @method('PATCH') @endif
 
+                        @unless ($pemblokiran)
+                        {{-- Create mode: periode picker, auto-generate BSI + BNI --}}
+                        <div class="alert alert-info small mb-3">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Sistem akan otomatis membuat <strong>2 surat pemblokiran</strong>:
+                            satu untuk rekening <strong>BSI</strong> (Tingkat I) dan satu untuk <strong>BNI</strong> (Tingkat II &amp; III).
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Periode <span class="text-danger">*</span></label>
+                            @if (isset($periodeTersedia) && $periodeTersedia->isNotEmpty())
+                            <select name="periode_bulan" class="form-select @error('periode_bulan') is-invalid @enderror" id="periodeSelect" required>
+                                <option value="">-- Pilih Periode --</option>
+                                @foreach ($periodeTersedia as $p)
+                                    <option value="{{ $p->periode_bulan }}" data-tahun="{{ $p->periode_tahun }}"
+                                        @selected(old('periode_bulan') == $p->periode_bulan)>
+                                        {{ \App\Helpers\DateHelper::namaBulan($p->periode_bulan) }} {{ $p->periode_tahun }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <input type="hidden" name="periode_tahun" id="periodeTahun" value="{{ old('periode_tahun') }}">
+                            @else
+                            <div class="alert alert-warning">Tidak ada rekap final tersedia.</div>
+                            @endif
+                            @error('periode_bulan')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        @else
+                        {{-- Edit mode: periode read-only --}}
+                        <input type="hidden" name="periode_bulan" value="{{ $pemblokiran->periode_bulan }}">
+                        <input type="hidden" name="periode_tahun" value="{{ $pemblokiran->periode_tahun }}">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Periode</label>
+                            <p class="form-control-plaintext">{{ $pemblokiran->periode_label }}</p>
+                        </div>
+                        @endunless
+
                         <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Taruna <span class="text-danger">*</span></label>
-                                <select name="taruna_id" class="form-select @error('taruna_id') is-invalid @enderror" required>
-                                    <option value="">-- Pilih Taruna --</option>
-                                    @foreach ($tarunaList as $t)
-                                        <option value="{{ $t->id }}" @selected(old('taruna_id', $pemblokiran?->taruna_id) == $t->id)>
-                                            {{ $t->nit }} — {{ $t->nama }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('taruna_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Rekening Senat (target debit) <span class="text-danger">*</span></label>
-                                <select name="senat_account_id" class="form-select @error('senat_account_id') is-invalid @enderror" required>
-                                    <option value="">-- Pilih Rekening Senat --</option>
-                                    @foreach ($senatAccounts as $sa)
-                                        <option value="{{ $sa->id }}" @selected(old('senat_account_id', $pemblokiran?->senat_account_id) == $sa->id)>
-                                            {{ $sa->nama_rekening }} — {{ $sa->bank }} {{ $sa->nomor_rekening }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('senat_account_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Bulan <span class="text-danger">*</span></label>
-                                <select name="periode_bulan" class="form-select @error('periode_bulan') is-invalid @enderror" required>
-                                    @foreach (range(1,12) as $b)
-                                        <option value="{{ $b }}" @selected(old('periode_bulan', $pemblokiran?->periode_bulan) == $b)>
-                                            {{ \App\Helpers\DateHelper::namaBulan($b) }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('periode_bulan')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Tahun <span class="text-danger">*</span></label>
-                                <input type="number" name="periode_tahun" class="form-control @error('periode_tahun') is-invalid @enderror"
-                                    value="{{ old('periode_tahun', $pemblokiran?->periode_tahun ?? now()->year) }}" required>
-                                @error('periode_tahun')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Nilai Bantuan (Rp) <span class="text-danger">*</span></label>
-                                <input type="number" name="nilai_bantuan" class="form-control @error('nilai_bantuan') is-invalid @enderror"
-                                    value="{{ old('nilai_bantuan', $pemblokiran?->nilai_bantuan) }}" min="0" step="0.01" required>
-                                @error('nilai_bantuan')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Nomor Surat Pemblokiran</label>
                                 <input type="text" name="nomor_surat_pemblokiran" class="form-control"
@@ -101,7 +95,7 @@
                         <hr class="my-4">
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save me-1"></i>{{ $pemblokiran ? 'Perbarui' : 'Usulkan' }}
+                                <i class="bi bi-save me-1"></i>{{ $pemblokiran ? 'Perbarui' : 'Usulkan Pemblokiran' }}
                             </button>
                             <a href="{{ route('pemblokiran.index') }}" class="btn btn-outline-secondary">Batal</a>
                         </div>
@@ -112,3 +106,15 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+const ps = document.getElementById('periodeSelect');
+if (ps) {
+    ps.addEventListener('change', function () {
+        const opt = this.options[this.selectedIndex];
+        document.getElementById('periodeTahun').value = opt.dataset.tahun || '';
+    });
+}
+</script>
+@endpush

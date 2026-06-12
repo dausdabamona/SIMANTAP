@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\PengajuanPembayaran;
 use App\Models\RekapBulanan;
+use App\Models\SenatAccount;
+use App\Models\Taruna;
 use App\Models\WorkflowPembayaran;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -20,6 +22,7 @@ class PengajuanPembayaranController extends Controller
             return DataTables::eloquent(PengajuanPembayaran::query())
                 ->addIndexColumn()
                 ->addColumn('periode', fn ($p) => $p->nama_bulan . ' ' . $p->periode_tahun)
+                ->addColumn('kelas_bank', fn ($p) => ($p->kelas ?? '-') . ' / ' . ($p->bank_group ?? '-'))
                 ->addColumn('nilai_fmt', fn ($p) => 'Rp ' . number_format($p->total_nilai, 0, ',', '.'))
                 ->addColumn('status_badge', fn ($p) => $this->statusBadge($p))
                 ->addColumn('action', fn ($p) => $this->actionButtons($p))
@@ -32,7 +35,7 @@ class PengajuanPembayaranController extends Controller
 
     public function create(): View
     {
-        // Periods that have final rekap but no pengajuan yet
+        // Periods with final rekap
         $periodeTersedia = RekapBulanan::final()
             ->select('periode_bulan', 'periode_tahun')
             ->distinct()
@@ -43,54 +46,154 @@ class PengajuanPembayaranController extends Controller
         return view('pembayaran.form', ['pengajuan' => null, 'periodeTersedia' => $periodeTersedia]);
     }
 
+    /**
+     * Return kelas available for a given periode (AJAX).
+     * Each entry: kelas, tingkat, bank_group, jumlah_taruna, total_nilai
+     * Already-created SPMs for that kelas+periode are excluded.
+     */
+    public function kelasTersedia(Request $request)
+    {
+        $bulan = (int) $request->periode_bulan;
+        $tahun = (int) $request->periode_tahun;
+
+        if (!$bulan || !$tahun) {
+            return response()->json([]);
+        }
+
+        // Group rekap final by kelas (via taruna join)
+        $rekaps = RekapBulanan::final()
+            ->byPeriode($bulan, $tahun)
+            ->join('taruna', 'rekap_bulanan.taruna_id', '=', 'taruna.id')
+            ->whereNotNull('taruna.kelas')
+            ->select('taruna.kelas', DB::raw('COUNT(rekap_bulanan.id) as jumlah_taruna'), DB::raw('SUM(rekap_bulanan.nilai_bantuan) as total_nilai'), DB::raw('SUM(rekap_bulanan.total_porsi) as total_porsi'))
+            ->groupBy('taruna.kelas')
+            ->get();
+
+        // Get kelas that already have SPM this periode
+        $sudahAda = PengajuanPembayaran::where('periode_bulan', $bulan)
+            ->where('periode_tahun', $tahun)
+            ->whereNotNull('kelas')
+            ->pluck('kelas')
+            ->toArray();
+
+        $now   = now();
+        $bulanNow = $now->month;
+        $tahunNow = $now->year;
+
+        $result = $rekaps->map(function ($r) use ($sudahAda, $bulanNow, $tahunNow) {
+            // Determine tingkat from kelas name (e.g., "X-A" → tingkat 1, "XI-B" → 2, "XII-A" → 3)
+            $tingkat = $this->tingkatDariKelas($r->kelas);
+            $bankGroup = $tingkat === 1 ? 'BSI' : 'BNI';
+
+            return [
+                'kelas'         => $r->kelas,
+                'tingkat'       => $tingkat,
+                'bank_group'    => $bankGroup,
+                'jumlah_taruna' => $r->jumlah_taruna,
+                'total_nilai'   => $r->total_nilai,
+                'total_porsi'   => $r->total_porsi,
+                'sudah_ada_spm' => in_array($r->kelas, $sudahAda),
+            ];
+        });
+
+        return response()->json($result);
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'periode_bulan' => 'required|integer|min:1|max:12',
             'periode_tahun' => 'required|integer|min:2020',
+            'kelas'         => 'required|array|min:1',
+            'kelas.*'       => 'required|string|max:20',
         ]);
 
-        // Sum values from final rekap
-        $totalNilai  = RekapBulanan::final()->byPeriode($data['periode_bulan'], $data['periode_tahun'])->sum('nilai_bantuan');
-        $totalTaruna = RekapBulanan::final()->byPeriode($data['periode_bulan'], $data['periode_tahun'])->count();
-        $totalPorsi  = RekapBulanan::final()->byPeriode($data['periode_bulan'], $data['periode_tahun'])->sum('total_porsi');
+        $bulan = $data['periode_bulan'];
+        $tahun = $data['periode_tahun'];
+        $kelasList = $data['kelas'];
 
-        if ($totalNilai <= 0) {
-            return back()->with('error', 'Tidak ada rekap final untuk periode tersebut.');
-        }
+        $created = DB::transaction(function () use ($bulan, $tahun, $kelasList) {
+            $results = [];
 
-        $nomorPengajuan = 'PBY/' . $data['periode_tahun'] . '/' . str_pad($data['periode_bulan'], 2, '0', STR_PAD_LEFT) . '/' . now()->format('dmHi');
+            foreach ($kelasList as $kelas) {
+                // Check not duplicate
+                $existing = PengajuanPembayaran::where('periode_bulan', $bulan)
+                    ->where('periode_tahun', $tahun)
+                    ->where('kelas', $kelas)
+                    ->first();
 
-        $pengajuan = DB::transaction(function () use ($data, $totalNilai, $totalTaruna, $totalPorsi, $nomorPengajuan) {
-            $pengajuan = PengajuanPembayaran::create([
-                'nomor_pengajuan' => $nomorPengajuan,
-                'periode_bulan'   => $data['periode_bulan'],
-                'periode_tahun'   => $data['periode_tahun'],
-                'total_taruna'    => $totalTaruna,
-                'total_porsi'     => $totalPorsi,
-                'total_nilai'     => $totalNilai,
-                'status'          => PengajuanPembayaran::STATUS_DRAFT,
-            ]);
+                if ($existing) {
+                    continue;
+                }
 
-            WorkflowPembayaran::create([
-                'pengajuan_id' => $pengajuan->id,
-                'aksi'         => 'buat',
-                'status_dari'  => null,
-                'status_ke'    => PengajuanPembayaran::STATUS_DRAFT,
-                'user_id'      => auth()->id(),
-                'catatan'      => 'Pengajuan dibuat',
-                'created_at'   => now(),
-            ]);
+                $rekap = RekapBulanan::final()
+                    ->byPeriode($bulan, $tahun)
+                    ->join('taruna', 'rekap_bulanan.taruna_id', '=', 'taruna.id')
+                    ->where('taruna.kelas', $kelas)
+                    ->selectRaw('COUNT(rekap_bulanan.id) as total_taruna, SUM(rekap_bulanan.nilai_bantuan) as total_nilai, SUM(rekap_bulanan.total_porsi) as total_porsi')
+                    ->first();
 
-            return $pengajuan;
+                if (!$rekap || $rekap->total_nilai <= 0) {
+                    continue;
+                }
+
+                $tingkat   = $this->tingkatDariKelas($kelas);
+                $bankGroup = $tingkat === 1 ? 'BSI' : 'BNI';
+
+                $senatId = SenatAccount::where('bank_group', $bankGroup)
+                    ->where('is_aktif', true)
+                    ->value('id');
+
+                $nomorPengajuan = 'PBY/' . $tahun . '/' . str_pad($bulan, 2, '0', STR_PAD_LEFT)
+                    . '/' . str_replace('-', '', $kelas) . '/' . now()->format('dmHi');
+
+                $pengajuan = PengajuanPembayaran::create([
+                    'nomor_pengajuan'  => $nomorPengajuan,
+                    'periode_bulan'    => $bulan,
+                    'periode_tahun'    => $tahun,
+                    'kelas'            => $kelas,
+                    'tingkat'          => $tingkat,
+                    'bank_group'       => $bankGroup,
+                    'rekening_senat_id'=> $senatId,
+                    'total_taruna'     => $rekap->total_taruna,
+                    'total_porsi'      => $rekap->total_porsi,
+                    'total_nilai'      => $rekap->total_nilai,
+                    'status'           => PengajuanPembayaran::STATUS_DRAFT,
+                ]);
+
+                WorkflowPembayaran::create([
+                    'pengajuan_id' => $pengajuan->id,
+                    'aksi'         => 'buat',
+                    'status_dari'  => '',
+                    'status_ke'    => PengajuanPembayaran::STATUS_DRAFT,
+                    'user_id'      => auth()->id(),
+                    'catatan'      => 'SPM dibuat untuk kelas ' . $kelas,
+                    'created_at'   => now(),
+                ]);
+
+                $results[] = $pengajuan;
+            }
+
+            return $results;
         });
 
-        return redirect()->route('pembayaran.show', $pengajuan)->with('success', 'Pengajuan pembayaran berhasil dibuat.');
+        $jumlah = count($created);
+        if ($jumlah === 0) {
+            return back()->with('error', 'Tidak ada SPM baru yang dibuat. Mungkin sudah ada atau rekap tidak tersedia.');
+        }
+
+        if ($jumlah === 1) {
+            return redirect()->route('pembayaran.show', $created[0])
+                ->with('success', 'SPM berhasil dibuat untuk kelas ' . $created[0]->kelas . '.');
+        }
+
+        return redirect()->route('pembayaran.index')
+            ->with('success', $jumlah . ' SPM berhasil dibuat untuk periode ' . $bulan . '/' . $tahun . '.');
     }
 
     public function show(PengajuanPembayaran $pembayaran): View
     {
-        $pembayaran->load('workflow.user');
+        $pembayaran->load('workflow.user', 'rekeningSenat');
         return view('pembayaran.show', compact('pembayaran'));
     }
 
@@ -125,7 +228,6 @@ class PengajuanPembayaranController extends Controller
         $aksi      = $request->aksi;
         $statusNow = $pembayaran->status;
 
-        // Authorization: each action requires its own permission
         $permMap = [
             'proses_ppk'          => 'pembayaran.proses_ppk',
             'setujui_kpa'         => 'pembayaran.setujui_kpa',
@@ -177,6 +279,14 @@ class PengajuanPembayaranController extends Controller
 
     // ── Private Helpers ──────────────────────────────────────────────
 
+    private function tingkatDariKelas(string $kelas): int
+    {
+        $upper = strtoupper($kelas);
+        if (str_starts_with($upper, 'XII')) return 3;
+        if (str_starts_with($upper, 'XI'))  return 2;
+        return 1;
+    }
+
     private function handleSp2d(Request $request, PengajuanPembayaran $pembayaran): array
     {
         $request->validate([
@@ -199,19 +309,19 @@ class PengajuanPembayaranController extends Controller
     private function statusBadge(PengajuanPembayaran $p): string
     {
         $color = match ($p->status) {
-            PengajuanPembayaran::STATUS_DRAFT             => 'secondary',
-            PengajuanPembayaran::STATUS_DIPROSES_PPK      => 'info',
-            PengajuanPembayaran::STATUS_DISETUJUI_KPA     => 'primary',
-            PengajuanPembayaran::STATUS_PERMOHONAN_KPPN   => 'warning',
-            PengajuanPembayaran::STATUS_SP2D              => 'info',
-            PengajuanPembayaran::STATUS_TRANSFER_KPPN     => 'primary',
-            PengajuanPembayaran::STATUS_DEBIT_BANK        => 'warning',
-            PengajuanPembayaran::STATUS_TRANSFER_PENYEDIA => 'success',
+            PengajuanPembayaran::STATUS_DRAFT               => 'secondary',
+            PengajuanPembayaran::STATUS_DIPROSES_PPK        => 'info',
+            PengajuanPembayaran::STATUS_DISETUJUI_KPA       => 'primary',
+            PengajuanPembayaran::STATUS_PERMOHONAN_KPPN     => 'warning',
+            PengajuanPembayaran::STATUS_SP2D                => 'info',
+            PengajuanPembayaran::STATUS_TRANSFER_KPPN       => 'primary',
+            PengajuanPembayaran::STATUS_DEBIT_BANK          => 'warning',
+            PengajuanPembayaran::STATUS_TRANSFER_PENYEDIA   => 'success',
             PengajuanPembayaran::STATUS_KONFIRMASI_PENYEDIA => 'success',
-            PengajuanPembayaran::STATUS_LPJ_PPK           => 'info',
-            PengajuanPembayaran::STATUS_LPJ_KPA           => 'info',
-            PengajuanPembayaran::STATUS_SELESAI           => 'dark',
-            default                                        => 'secondary',
+            PengajuanPembayaran::STATUS_LPJ_PPK             => 'info',
+            PengajuanPembayaran::STATUS_LPJ_KPA             => 'info',
+            PengajuanPembayaran::STATUS_SELESAI             => 'dark',
+            default                                         => 'secondary',
         };
         return '<span class="badge bg-' . $color . '">' . e($p->status_label) . '</span>';
     }

@@ -30,6 +30,15 @@
                     <dl class="row mb-0">
                         <dt class="col-sm-5">Nomor Pengajuan</dt><dd class="col-sm-7 fw-semibold font-monospace">{{ $pembayaran->nomor_pengajuan }}</dd>
                         <dt class="col-sm-5">Periode</dt><dd class="col-sm-7">{{ $pembayaran->nama_bulan }} {{ $pembayaran->periode_tahun }}</dd>
+                        @if ($pembayaran->kelas)
+                        <dt class="col-sm-5">Kelas</dt><dd class="col-sm-7 fw-semibold">{{ $pembayaran->kelas }} (Tingkat {{ $pembayaran->tingkat }})</dd>
+                        <dt class="col-sm-5">Bank</dt><dd class="col-sm-7">
+                            <span class="badge {{ $pembayaran->bank_group === 'BSI' ? 'bg-success' : 'bg-primary' }}">{{ $pembayaran->bank_group }}</span>
+                        </dd>
+                        @if ($pembayaran->rekeningSenat)
+                        <dt class="col-sm-5">Rekening Senat</dt><dd class="col-sm-7 small">{{ $pembayaran->rekeningSenat->nama_akun }} — {{ $pembayaran->rekeningSenat->nomor_rekening }}</dd>
+                        @endif
+                        @endif
                         <dt class="col-sm-5">Total Taruna</dt><dd class="col-sm-7">{{ number_format($pembayaran->total_taruna) }} taruna</dd>
                         <dt class="col-sm-5">Total Porsi</dt><dd class="col-sm-7">{{ number_format($pembayaran->total_porsi) }} porsi</dd>
                         <dt class="col-sm-5">Total Nilai</dt>

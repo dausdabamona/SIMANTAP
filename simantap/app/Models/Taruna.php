@@ -103,6 +103,17 @@ class Taruna extends Model
         return $this->penerima_bantuan && ! in_array($this->status_taruna, $statusTidakDapat);
     }
 
+    public function getTingkatTarunaAttribute(): int
+    {
+        $tahunMasuk    = $this->angkatan ?? now()->year;
+        $tahunSekarang = now()->year;
+        $bulanSekarang = now()->month;
+        $tingkat = ($bulanSekarang >= 8)
+            ? ($tahunSekarang - $tahunMasuk + 1)
+            : ($tahunSekarang - $tahunMasuk);
+        return max(1, min(3, $tingkat));
+    }
+
     public function getJenisKelaminLabelAttribute(): string
     {
         return $this->jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan';

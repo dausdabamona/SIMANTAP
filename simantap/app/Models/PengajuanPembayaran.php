@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PengajuanPembayaran extends Model
@@ -17,6 +18,10 @@ class PengajuanPembayaran extends Model
         'nomor_pengajuan',
         'periode_bulan',
         'periode_tahun',
+        'kelas',
+        'tingkat',
+        'bank_group',
+        'rekening_senat_id',
         'total_taruna',
         'total_porsi',
         'total_nilai',
@@ -32,6 +37,7 @@ class PengajuanPembayaran extends Model
     protected $casts = [
         'periode_bulan'  => 'integer',
         'periode_tahun'  => 'integer',
+        'tingkat'        => 'integer',
         'total_taruna'   => 'integer',
         'total_porsi'    => 'integer',
         'total_nilai'    => 'decimal:2',
@@ -56,6 +62,11 @@ class PengajuanPembayaran extends Model
     public function workflow(): HasMany
     {
         return $this->hasMany(WorkflowPembayaran::class, 'pengajuan_id');
+    }
+
+    public function rekeningSenat(): BelongsTo
+    {
+        return $this->belongsTo(SenatAccount::class, 'rekening_senat_id');
     }
 
     // ---------- Scopes ----------
