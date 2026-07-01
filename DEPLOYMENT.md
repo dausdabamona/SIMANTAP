@@ -16,16 +16,16 @@ apt install -y curl wget git unzip
 add-apt-repository ppa:ondrej/php -y
 apt update
 apt install -y \
-    php8.2-fpm php8.2-cli php8.2-common \
-    php8.2-mbstring php8.2-xml php8.2-curl \
-    php8.2-gd php8.2-zip php8.2-bcmath \
-    php8.2-mysql php8.2-intl php8.2-tokenizer \
-    php8.2-fileinfo php8.2-dom
+    php8.3-fpm php8.3-cli php8.3-common \
+    php8.3-mbstring php8.3-xml php8.3-curl \
+    php8.3-gd php8.3-zip php8.3-bcmath \
+    php8.3-mysql php8.3-intl php8.3-tokenizer \
+    php8.3-fileinfo php8.3-dom
 ```
 
 Verifikasi:
 ```bash
-php8.2 --version
+php8.3 --version
 ```
 
 ### 1.3 Install MySQL 8
@@ -46,7 +46,7 @@ EXIT;
 
 ### 1.4 Install Composer
 ```bash
-curl -sS https://getcomposer.org/installer | php8.2
+curl -sS https://getcomposer.org/installer | php8.3
 mv composer.phar /usr/local/bin/composer
 chmod +x /usr/local/bin/composer
 composer --version
@@ -96,18 +96,18 @@ Sesuaikan nilai berikut:
 
 ### 2.4 Generate application key
 ```bash
-php8.2 artisan key:generate
+php8.3 artisan key:generate
 ```
 
 ### 2.5 Jalankan migrasi + seeder
 ```bash
-php8.2 artisan migrate --force
-php8.2 artisan db:seed --force
+php8.3 artisan migrate --force
+php8.3 artisan db:seed --force
 ```
 
 ### 2.6 Buat symlink storage
 ```bash
-php8.2 artisan storage:link
+php8.3 artisan storage:link
 ```
 
 ### 2.7 Set permission
@@ -121,9 +121,9 @@ chmod -R 775 /var/www/simantap/simantap/bootstrap/cache
 ### 2.8 Cache konfigurasi
 ```bash
 cd /var/www/simantap/simantap
-php8.2 artisan config:cache
-php8.2 artisan route:cache
-php8.2 artisan view:cache
+php8.3 artisan config:cache
+php8.3 artisan route:cache
+php8.3 artisan view:cache
 ```
 
 ---
@@ -211,7 +211,7 @@ Jalankan setiap poin sebelum meluncurkan ke pengguna:
 
 - [ ] `APP_DEBUG=false` di `.env`
 - [ ] `APP_ENV=production` di `.env`
-- [ ] `APP_KEY` sudah di-generate (`php8.2 artisan key:generate`)
+- [ ] `APP_KEY` sudah di-generate (`php8.3 artisan key:generate`)
 - [ ] SSL aktif dan redirect HTTP → HTTPS berjalan
 - [ ] Login berhasil, redirect ke dashboard
 - [ ] Upload foto monitoring (test file 5MB) — cek `client_max_body_size`
@@ -220,7 +220,7 @@ Jalankan setiap poin sebelum meluncurkan ke pengguna:
 - [ ] Storage symlink: akses `https://domain.com/storage/` harus 200
 - [ ] Log tidak ada error: `tail -f /var/log/nginx/simantap-error.log`
 - [ ] Log Laravel bersih: `tail -f /var/www/simantap/simantap/storage/logs/laravel.log`
-- [ ] Timezone WIT benar: `php8.2 artisan tinker --execute="echo now()->format('Y-m-d H:i T');"`
+- [ ] Timezone WIT benar: `php8.3 artisan tinker --execute="echo now()->format('Y-m-d H:i T');"`
 - [ ] Import Excel Taruna berfungsi
 - [ ] Cek semua role (super_admin, ppk, kpa, senat_taruna, pembina_karakter) bisa login
 
@@ -241,10 +241,10 @@ tail -f /var/log/supervisor/simantap-worker.log
 ### Mode maintenance
 ```bash
 # Aktifkan
-php8.2 artisan down --render="errors.503" --secret="token-rahasia"
+php8.3 artisan down --render="errors.503" --secret="token-rahasia"
 
 # Nonaktifkan
-php8.2 artisan up
+php8.3 artisan up
 ```
 
 ### Backup database
@@ -259,10 +259,10 @@ mysqldump -u simantap_user -p simantap | gzip > /backup/simantap_$(date +%Y%m%d)
 | Layanan | Perintah |
 |---|---|
 | Nginx status | `systemctl status nginx` |
-| PHP-FPM status | `systemctl status php8.2-fpm` |
+| PHP-FPM status | `systemctl status php8.3-fpm` |
 | Supervisor status | `supervisorctl status` |
 | MySQL status | `systemctl status mysql` |
-| Restart semua | `systemctl restart nginx php8.2-fpm && supervisorctl restart all` |
+| Restart semua | `systemctl restart nginx php8.3-fpm && supervisorctl restart all` |
 | Log Nginx | `/var/log/nginx/simantap-error.log` |
 | Log Laravel | `/var/www/simantap/simantap/storage/logs/laravel.log` |
 | Log Worker | `/var/log/supervisor/simantap-worker.log` |

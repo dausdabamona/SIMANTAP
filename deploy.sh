@@ -4,7 +4,7 @@
 set -e
 
 APP_DIR="/var/www/simantap"
-PHP="php8.2"
+PHP="php8.3"
 
 echo "==> [1/9] Pull kode terbaru..."
 cd "$APP_DIR"
