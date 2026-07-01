@@ -209,6 +209,12 @@ Script `deploy.sh` akan:
 
 Jalankan setiap poin sebelum meluncurkan ke pengguna:
 
+- [ ] **WAJIB — Ganti password semua akun bawaan seeder.** Seeder membuat
+      akun dengan password default `password123`. Sebelum aplikasi dibuka ke
+      pengguna, ubah password SEMUA akun tersebut (super_admin, ppk, kpa,
+      senat_taruna, pembina_karakter, dst.) melalui menu profil atau tinker:
+      `php8.3 artisan tinker --execute="\App\Models\User::where('email','admin@example.com')->first()->update(['password' => bcrypt('password-baru-yang-kuat')]);"`
+      Aplikasi TIDAK BOLEH go-live selama masih ada akun ber-password `password123`.
 - [ ] `APP_DEBUG=false` di `.env`
 - [ ] `APP_ENV=production` di `.env`
 - [ ] `APP_KEY` sudah di-generate (`php8.3 artisan key:generate`)
