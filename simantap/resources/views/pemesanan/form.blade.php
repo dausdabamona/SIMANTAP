@@ -168,36 +168,42 @@
 const porsiPerHari = {{ config('simantap.porsi_per_hari', 3) }};
 
 function updatePreview() {
-    const jumlah = parseInt($('#jumlahTaruna').val()) || 0;
-    const harga  = parseFloat($('#hargaPorsi').val()) || 0;
+    const jumlahEl = document.getElementById('jumlahTaruna');
+    const hargaEl  = document.getElementById('hargaPorsi');
+    const jumlah = parseInt(jumlahEl?.value) || 0;
+    const harga  = parseFloat(hargaEl?.value) || 0;
     const totalPorsi = jumlah * porsiPerHari;
     const totalNilai = totalPorsi * harga;
 
-    $('#previewPorsi').text(totalPorsi.toLocaleString('id-ID'));
-    $('#previewNilai').text('Rp ' + totalNilai.toLocaleString('id-ID'));
+    document.getElementById('previewPorsi').textContent = totalPorsi.toLocaleString('id-ID');
+    document.getElementById('previewNilai').textContent = 'Rp ' + totalNilai.toLocaleString('id-ID');
 }
 
-$('#jumlahTaruna').on('input', updatePreview);
+document.getElementById('jumlahTaruna')?.addEventListener('input', updatePreview);
 
 // Auto-fill harga porsi dari kontrak yang dipilih (readonly display + hidden value)
-$('#kontrakSelect').on('change', function () {
-    const selected = $(this).find(':selected');
-    const harga = selected.data('harga-porsi') || selected.data('harga') || 0;
-    $('#hargaPorsi').val(harga);
-    $('#hargaPorsiDisplay').val(harga ? new Intl.NumberFormat('id-ID').format(harga) : '');
+const kontrakSelect = document.getElementById('kontrakSelect');
+kontrakSelect?.addEventListener('change', function () {
+    const selected = this.options[this.selectedIndex];
+    const harga = selected?.dataset.hargaPorsi || selected?.dataset.harga || 0;
+    const hargaEl = document.getElementById('hargaPorsi');
+    const hargaDisplay = document.getElementById('hargaPorsiDisplay');
+    if (hargaEl) hargaEl.value = harga;
+    if (hargaDisplay) hargaDisplay.value = harga ? new Intl.NumberFormat('id-ID').format(harga) : '';
     updatePreview();
 });
 
 // Auto-select jika hanya ada satu kontrak aktif
-$(document).ready(function () {
-    const select = document.getElementById('kontrakSelect');
-    if (select && select.options.length === 2) {
-        select.selectedIndex = 1;
-        $('#kontrakSelect').trigger('change');
-    } else if ($('#hargaPorsi').val()) {
+document.addEventListener('DOMContentLoaded', function () {
+    const hargaEl = document.getElementById('hargaPorsi');
+    if (kontrakSelect && kontrakSelect.options.length === 2) {
+        kontrakSelect.selectedIndex = 1;
+        kontrakSelect.dispatchEvent(new Event('change'));
+    } else if (hargaEl?.value) {
         // Restore display on validation error
-        const harga = parseFloat($('#hargaPorsi').val()) || 0;
-        if (harga) $('#hargaPorsiDisplay').val(new Intl.NumberFormat('id-ID').format(harga));
+        const harga = parseFloat(hargaEl.value) || 0;
+        const hargaDisplay = document.getElementById('hargaPorsiDisplay');
+        if (harga && hargaDisplay) hargaDisplay.value = new Intl.NumberFormat('id-ID').format(harga);
     }
     updatePreview();
 });

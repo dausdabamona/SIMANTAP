@@ -57,9 +57,10 @@ class SesiPenerimaanTest extends TestCase
             'status'          => 'aktif',
         ]);
 
-        // Buat pemesanan harian
+        // Buat pemesanan harian (gunakan tanggal tengah bulan agar tidak bentrok
+        // dengan test rekap bulanan yang memakai now()->startOfMonth())
         $this->pemesanan = PemesananHarian::create([
-            'tanggal'              => today(),
+            'tanggal'              => today()->day === 1 ? today()->addDays(14) : today(),
             'kontrak_id'           => $this->kontrak->id,
             'jumlah_taruna_hadir'  => 254,
             'jumlah_porsi'         => 762, // 254 × 3
@@ -71,7 +72,7 @@ class SesiPenerimaanTest extends TestCase
         // Buat satu sesi
         $this->sesi = SesiPenerimaanMakan::create([
             'pemesanan_harian_id' => $this->pemesanan->id,
-            'tanggal'             => today(),
+            'tanggal'             => $this->pemesanan->tanggal,
             'sesi'                => SesiPenerimaanMakan::SESI_SARAPAN,
             'porsi_dipesan'       => 254,
             'status'              => SesiPenerimaanMakan::STATUS_MENUNGGU,
