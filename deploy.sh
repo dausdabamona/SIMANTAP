@@ -3,12 +3,15 @@
 # Jalankan dari root project: bash deploy.sh
 set -e
 
-APP_DIR="/var/www/simantap"
+REPO_DIR="/var/www/simantap"
+APP_DIR="$REPO_DIR/simantap"   # aplikasi Laravel berada di subfolder simantap/
 PHP="php8.3"
 
 echo "==> [1/9] Pull kode terbaru..."
-cd "$APP_DIR"
+cd "$REPO_DIR"
 git pull origin main
+
+cd "$APP_DIR"
 
 echo "==> [2/9] Install Composer dependencies (production)..."
 $PHP $(which composer) install --no-dev --optimize-autoloader --no-interaction
@@ -37,4 +40,4 @@ sudo supervisorctl update
 sudo supervisorctl restart simantap-worker:*
 
 echo "==> [9/9] Selesai!"
-echo "    App URL: $(grep APP_URL .env | cut -d= -f2)"
+echo "    App URL: $(grep APP_URL "$APP_DIR/.env" | cut -d= -f2)"
