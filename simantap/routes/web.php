@@ -51,11 +51,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/password/change', [ProfileController::class, 'editPassword'])->name('password.change');
 
     // ── Master Data ──────────────────────────────────────────
-    Route::resource('taruna', \App\Http\Controllers\TarunaController::class);
-    Route::post('taruna/{id}/restore',  [\App\Http\Controllers\TarunaController::class, 'restore'])->name('taruna.restore');
+    // Route statis taruna HARUS di atas resource agar tidak tertangkap taruna/{taruna} (show)
     Route::post('taruna/import',        [\App\Http\Controllers\TarunaController::class, 'import'])->name('taruna.import');
     Route::get('taruna/export',         [\App\Http\Controllers\TarunaController::class, 'export'])->name('taruna.export');
     Route::get('taruna/template',       [\App\Http\Controllers\TarunaController::class, 'template'])->name('taruna.template');
+    Route::post('taruna/{id}/restore',  [\App\Http\Controllers\TarunaController::class, 'restore'])->name('taruna.restore')->whereNumber('id');
+    Route::resource('taruna', \App\Http\Controllers\TarunaController::class)->whereNumber('taruna');
     Route::resource('rekening-taruna', \App\Http\Controllers\RekeningTarunaController::class);
     Route::resource('penyedia',        \App\Http\Controllers\PenyediaMakanController::class);
     Route::resource('penyedia.rekening', \App\Http\Controllers\RekeningPenyediaController::class)
